@@ -1,20 +1,24 @@
+"use client"
+
 import React from "react"
 import Link from "next/link"
 import { Search, User } from "lucide-react"
 
 import { Container } from "./container"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { MobileNav } from "./mobile-nav"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export function Header() {
   return (
@@ -33,13 +37,13 @@ export function Header() {
               Dashboard
             </Link>
             <Link
-              href="/"
+              href="/diary"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
             >
               My Diary
             </Link>
             <Link
-              href="/"
+              href="/favorites"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
             >
               Favorites
@@ -57,17 +61,28 @@ export function Header() {
             />
           </div>
           <ThemeToggle />
-          
+
           <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="rounded-full" />}>
-                <User className="h-5 w-5" />
-                <span className="sr-only">Toggle user menu</span>
+            <DropdownMenuTrigger
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "icon" }),
+                "rounded-full"
+              )}
+              aria-label="Toggle user menu"
+            >
+              <User className="h-5 w-5" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem render={<Link href="/profile" />}>
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link href="/settings" />}>
+                  Settings
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem>Log out</DropdownMenuItem>
             </DropdownMenuContent>
