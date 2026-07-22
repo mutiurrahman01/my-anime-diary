@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import type { AnimeListItem, Database } from "@/types/database"
+import type { AnimeListItem, AnimeRow, Database } from "@/types/database"
 import { quoteIlikePattern } from "@/utils/slug"
 
 const DEFAULT_LIMIT = 24
@@ -55,16 +55,16 @@ export async function searchAnime(
 export async function getAnimeBySlug(
   supabase: SupabaseClient<Database>,
   slug: string
-): Promise<{ data: AnimeListItem | null; error: string | null }> {
+): Promise<{ data: AnimeRow | null; error: string | null }> {
   const { data, error } = await supabase
     .from("anime")
-    .select("id, title, english_title, slug, cover_image, release_year, score")
+    .select("*")
     .eq("slug", slug)
     .is("deleted_at", null)
     .maybeSingle()
 
   return {
-    data: (data as AnimeListItem | null) ?? null,
+    data: (data as AnimeRow | null) ?? null,
     error: mapSearchError(error),
   }
 }
