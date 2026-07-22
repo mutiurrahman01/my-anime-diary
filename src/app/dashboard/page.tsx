@@ -5,6 +5,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { AnimeGrid } from "@/components/shared/anime-grid"
 import { AnimeCard } from "@/components/shared/anime-card"
 import { SectionHeader } from "@/components/shared/section-header"
+import { SupabaseAnimePreview } from "@/components/shared/supabase-anime-preview"
 import { cn } from "@/lib/utils"
 
 const placeholderAnime = Array.from({ length: 10 }).map((_, i) => ({
@@ -14,7 +15,7 @@ const placeholderAnime = Array.from({ length: 10 }).map((_, i) => ({
   slug: `amazing-anime-${i + 1}`,
 }))
 
-export default function Home() {
+export default function DashboardPage() {
   return (
     <Container className="py-12 md:py-24 space-y-16">
       <section className="flex flex-col items-center justify-center text-center space-y-6">
@@ -33,6 +34,8 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      <SupabaseAnimePreview />
 
       <section>
         <SectionHeader

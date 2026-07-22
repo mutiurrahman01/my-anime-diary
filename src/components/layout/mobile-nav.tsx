@@ -29,7 +29,7 @@ export function MobileNav() {
         <SheetTitle className="text-left font-bold">My Anime Diary</SheetTitle>
         <nav className="mt-8 flex flex-col gap-4">
           <Link
-            href="/"
+            href="/dashboard"
             onClick={() => setOpen(false)}
             className="text-lg font-medium hover:text-primary"
           >

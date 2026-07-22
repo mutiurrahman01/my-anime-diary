@@ -2,6 +2,7 @@
 
 import React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Search, User } from "lucide-react"
 
 import { Container } from "./container"
@@ -18,9 +19,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { buttonVariants } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 
 export function Header() {
+  const router = useRouter()
+
+  async function handleLogout() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.replace("/login")
+    router.refresh()
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <Container className="flex h-16 items-center justify-between">
@@ -31,7 +42,7 @@ export function Header() {
           </Link>
           <nav className="hidden md:flex gap-6">
             <Link
-              href="/"
+              href="/dashboard"
               className="text-sm font-medium transition-colors hover:text-primary"
             >
               Dashboard
@@ -84,7 +95,7 @@ export function Header() {
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Log out</DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleLogout}>Log out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
