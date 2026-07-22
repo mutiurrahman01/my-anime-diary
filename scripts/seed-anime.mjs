@@ -81,9 +81,31 @@ function getRequiredEnv(name) {
 
 async function main() {
   const supabaseUrl = getRequiredEnv("NEXT_PUBLIC_SUPABASE_URL")
-  const serviceRoleKey = getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY")
+  let supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || ""
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || ""
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+  console.log("Service role key present:", !!supabaseKey)
+  console.log("URL present:", !!supabaseUrl)
+
+  if (supabaseKey) {
+    console.log(
+      "Service role key loaded:",
+      `${supabaseKey.slice(0, 4)}...${supabaseKey.slice(-4)}`
+    )
+  } else if (anonKey) {
+    console.warn(
+      "SUPABASE_SERVICE_ROLE_KEY is not set; falling back to anon key for public inserts."
+    )
+    supabaseKey = anonKey
+  }
+
+  if (!supabaseKey) {
+    throw new Error(
+      "Missing required Supabase key: SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY"
+    )
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -113,11 +135,22 @@ async function main() {
 
   for (let index = 0; index < rows.length; index += BATCH_SIZE) {
     const batch = rows.slice(index, index + BATCH_SIZE)
-    const { error } = await supabase.from("anime").upsert(batch, {
-      onConflict: "mal_id",
-    })
+    const { error, status, statusText, data } = await supabase
+      .from("anime")
+      .upsert(batch, {
+        onConflict: "mal_id",
+      })
 
     if (error) {
+      console.error("Supabase error details:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        status,
+        statusText,
+        data,
+      })
       throw new Error(`Supabase upsert failed: ${error.message}`)
     }
 
@@ -129,6 +162,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error instanceof Error ? error.message : error)
+  console.error("Seed script error:", error instanceof Error ? error : { error })
   process.exit(1)
 })
