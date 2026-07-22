@@ -81,31 +81,43 @@ Stores anime metadata.
 
 Columns:
 
-| Column | Type |
-|---------|------|
-| id | UUID |
-| mal_id | INTEGER |
-| slug | TEXT |
-| title | TEXT |
-| title_english | TEXT |
-| title_japanese | TEXT |
-| title_romaji | TEXT |
-| cover_image | TEXT |
-| banner_image | TEXT |
-| description | TEXT |
-| release_year | INTEGER |
-| episodes | INTEGER |
-| status | TEXT |
-| studio | TEXT |
-| genres | TEXT[] |
-| created_at | TIMESTAMP |
-| updated_at | TIMESTAMP |
+| Column | Type | Notes |
+|---------|------|------|
+| id | UUID | Primary key |
+| mal_id | INTEGER | Unique, nullable |
+| slug | TEXT | Unique, required |
+| title | TEXT | Required |
+| english_title | TEXT | Nullable |
+| japanese_title | TEXT | Nullable |
+| synopsis | TEXT | Nullable |
+| cover_image | TEXT | Nullable |
+| banner_image | TEXT | Nullable |
+| trailer_url | TEXT | Nullable |
+| release_year | INTEGER | Nullable |
+| episodes | INTEGER | Nullable |
+| duration | TEXT | Nullable |
+| status | TEXT | Nullable |
+| type | TEXT | Nullable |
+| rating | TEXT | Nullable |
+| score | DECIMAL(3,2) | Nullable |
+| popularity | INTEGER | Nullable |
+| genres | TEXT[] | Nullable |
+| studios | TEXT[] | Nullable |
+| source | anime_source_enum | Required (`MANUAL`, `API`, `AI_SEED`) |
+| deleted_at | TIMESTAMPTZ | Nullable (soft filter) |
+| last_synced_at | TIMESTAMPTZ | Nullable |
+| created_at | TIMESTAMPTZ | Auto |
+| updated_at | TIMESTAMPTZ | Auto |
 
-Status values:
+Search indexes:
 
-- FINISHED
-- ONGOING
-- UPCOMING
+- GIN trigram indexes on `title`, `english_title`, `japanese_title`
+- GIN index on generated `search_vector` column
+
+RLS:
+
+- Anyone can read non-deleted rows
+- No client-side insert/update/delete (catalogue is seeded server-side)
 
 ---
 

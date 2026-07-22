@@ -192,6 +192,10 @@ Before running the project:
 
 ✓ Anon Key added
 
+✓ Latest Supabase migrations applied
+
+✓ Optional: `npm run seed:anime` to populate the anime catalogue
+
 ✓ No secrets committed
 
 ✓ Development server restarted

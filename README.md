@@ -174,7 +174,19 @@ npm run dev
 
 ---
 
-## 5 Open Browser
+## 5 Seed Anime Catalogue (optional)
+
+Import starter anime data from the Jikan API:
+
+```bash
+npm run seed:anime
+```
+
+Apply the latest Supabase migrations before seeding. The script requires `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`.
+
+---
+
+## 6 Open Browser
 
 ```
 http://localhost:3000
