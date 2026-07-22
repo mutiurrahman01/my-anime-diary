@@ -1,8 +1,6 @@
 "use client"
 
-import React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Search, User } from "lucide-react"
 
 import { Container } from "./container"
@@ -14,26 +12,16 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { buttonVariants } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/client"
+import { logoutAction } from "@/lib/actions/auth"
 import { cn } from "@/lib/utils"
 
 export function Header() {
-  const router = useRouter()
-
   async function handleLogout() {
-    const supabase = createClient()
-
-    try {
-      await supabase.auth.signOut()
-    } finally {
-      router.replace("/login")
-      router.refresh()
-    }
+    await logoutAction()
   }
 
   return (
@@ -89,7 +77,9 @@ export function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuGroup>
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuItem render={<Link href="/profile" />}>
+                  My Account
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem render={<Link href="/profile" />}>
                   Profile
@@ -99,7 +89,9 @@ export function Header() {
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={handleLogout}>Log out</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => void handleLogout()}>
+                Log out
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

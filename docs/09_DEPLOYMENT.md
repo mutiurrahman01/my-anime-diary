@@ -63,7 +63,11 @@ NEXT_PUBLIC_SUPABASE_URL
 
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+SUPABASE_SERVICE_ROLE_KEY
+
 Do not expose any secret keys to the browser.
+
+`SUPABASE_SERVICE_ROLE_KEY` is required for the account deletion action and must remain server-only.
 
 ---
 

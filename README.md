@@ -156,9 +156,13 @@ Fill in
 NEXT_PUBLIC_SUPABASE_URL=
 
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+SUPABASE_SERVICE_ROLE_KEY=
 ```
 
 Do not commit `.env.local`.
+
+`SUPABASE_SERVICE_ROLE_KEY` is used only by server-side account deletion and must never be exposed to the browser.
 
 ---
 

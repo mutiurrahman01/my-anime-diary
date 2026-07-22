@@ -70,6 +70,10 @@ NEXT_PUBLIC_SUPABASE_URL=
 
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
+For server-side account deletion only:
+
+SUPABASE_SERVICE_ROLE_KEY=
+
 ---
 
 # Where To Get These Values
@@ -92,6 +96,7 @@ Copy
 
 - Project URL
 - anon public key
+- service_role key for server-only admin actions
 
 Do NOT use the Service Role Key in the frontend.
 
@@ -172,6 +177,8 @@ Never expose
 - Personal Access Tokens
 
 Only expose values intended for the browser.
+
+The service role key must remain server-only and must never be referenced in client components.
 
 ---
 
