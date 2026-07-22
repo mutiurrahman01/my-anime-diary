@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Search, User } from "lucide-react"
 
 import { Container } from "./container"
@@ -16,12 +17,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { buttonVariants } from "@/components/ui/button"
-import { logoutAction } from "@/lib/actions/auth"
+import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 
 export function Header() {
+  const router = useRouter()
+
   async function handleLogout() {
-    await logoutAction()
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/")
+    router.refresh()
   }
 
   return (
@@ -89,7 +95,7 @@ export function Header() {
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => void handleLogout()}>
+              <DropdownMenuItem onClick={() => void handleLogout()}>
                 Log out
               </DropdownMenuItem>
             </DropdownMenuContent>

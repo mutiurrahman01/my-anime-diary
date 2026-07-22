@@ -21,13 +21,6 @@ function getField(formData: FormData, name: string) {
   return typeof value === "string" ? value.trim() : ""
 }
 
-export async function logoutAction() {
-  const supabase = await createClient()
-
-  await supabase.auth.signOut()
-  redirect("/")
-}
-
 export async function updateEmailAction(
   _previousState: FormState,
   formData: FormData
