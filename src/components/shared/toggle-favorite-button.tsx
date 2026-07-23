@@ -1,11 +1,10 @@
 "use client"
 
-import { useTransition } from "react"
+import { useTransition, useActionState } from "react"
 import { Heart } from "lucide-react"
-import { useFormState } from "react-dom"
 
 import { Button } from "@/components/ui/button"
-import { toggleFavoriteAction } from "@/lib/actions/diary.actions"
+import { toggleFavoriteAction, type DiaryActionState } from "@/lib/actions/diary.actions"
 
 interface ToggleFavoriteButtonProps {
   entryId: string
@@ -14,10 +13,11 @@ interface ToggleFavoriteButtonProps {
 
 export function ToggleFavoriteButton({ entryId, isFavorite }: ToggleFavoriteButtonProps) {
   const [isPending, startTransition] = useTransition()
-  const [state, formAction] = useFormState(toggleFavoriteAction, {
+  const initialState: DiaryActionState = {
     error: null,
     message: null,
-  })
+  }
+  const [state, formAction] = useActionState(toggleFavoriteAction, initialState)
 
   return (
     <form
