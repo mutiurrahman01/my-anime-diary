@@ -1,6 +1,6 @@
 "use server"
 
-import { redirect } from "next/navigation"
+import { redirect, revalidatePath } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
 import type { WatchStatus } from "@/types/database"
@@ -220,6 +220,10 @@ export async function toggleFavoriteAction(_previousState: DiaryActionState, for
       error: result.error,
     }
   }
+
+  revalidatePath("/favorites")
+  revalidatePath("/dashboard")
+  revalidatePath("/diary")
 
   return {
     ...emptyState,

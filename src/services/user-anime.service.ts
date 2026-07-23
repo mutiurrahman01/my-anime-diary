@@ -182,6 +182,52 @@ export async function getUserDiaryEntries(
   }
 }
 
+export async function getUserFavorites(
+  userId: string
+): Promise<{ data: DiaryEntryWithAnime[]; error: string | null }> {
+  try {
+    const supabase = await createClient()
+    const selectQuery = `
+          *,
+          anime:anime_id (
+            id,
+            title,
+            slug,
+            cover_image,
+            release_year
+          )
+        `
+
+    const { data, error } = await supabase
+      .from("user_anime")
+      .select(selectQuery)
+      .eq("user_id", userId)
+      .eq("favorite", true)
+      .order("updated_at", { ascending: false })
+
+    if (error) {
+      console.error("🔴 getUserFavorites Supabase error:", JSON.stringify(error, null, 2))
+      console.error("🔴 Error code:", (error as any)?.code)
+      console.error("🔴 Error message:", error.message)
+      console.error("🔴 Error details:", (error as any)?.details)
+      console.error("🔴 Error hint:", (error as any)?.hint)
+    }
+
+    const entries = (data ?? []).map(normalizeAnimeRelation) as DiaryEntryWithAnime[]
+
+    return {
+      data: entries,
+      error: mapServiceError(error),
+    }
+  } catch (error) {
+    console.error("🔴 getUserFavorites caught error:", error)
+    return {
+      data: [],
+      error: error instanceof Error ? error.message : "Unable to load your favorites right now.",
+    }
+  }
+}
+
 export async function addToDiary(data: DiaryEntryInput): Promise<DiaryEntryResult> {
   try {
     const supabase = await createClient()
