@@ -208,6 +208,9 @@ export interface Database {
 
 export type AnimeRow = Database["public"]["Tables"]["anime"]["Row"]
 export type AnimeInsert = Database["public"]["Tables"]["anime"]["Insert"]
+export type UserAnimeRow = Database["public"]["Tables"]["user_anime"]["Row"]
+export type UserAnimeInsert = Database["public"]["Tables"]["user_anime"]["Insert"]
+export type UserAnimeUpdate = Database["public"]["Tables"]["user_anime"]["Update"]
 
 export type AnimeListItem = Pick<
   AnimeRow,

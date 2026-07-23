@@ -2,9 +2,11 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { Container } from "@/components/layout/container"
+import { DiaryEntryDialog } from "@/components/shared/diary-entry-dialog"
 import { RatingStars } from "@/components/shared/rating-stars"
 import { createClient } from "@/lib/supabase/server"
 import { getAnimeByMalId, getAnimeBySlug } from "@/services/anime.service"
+import { getDiaryEntry } from "@/services/user-anime.service"
 import type { AnimeRow } from "@/types/database"
 import { cn } from "@/lib/utils"
 
@@ -17,25 +19,30 @@ type AnimeDetailsPageProps = {
 async function fetchAnime(param: string) {
   console.log("📄 Page slug param:", param)
   const malId = Number(param)
-  const supabase = await createClient()
 
-  if (!Number.isInteger(malId) || malId <= 0) {
-    const { data, error } = await getAnimeBySlug(supabase, param)
+  try {
+    const supabase = await createClient()
+
+    if (!Number.isInteger(malId) || malId <= 0) {
+      const { data, error } = await getAnimeBySlug(supabase, param)
+
+      if (error) {
+        throw new Error(error)
+      }
+
+      return data
+    }
+
+    const { data, error } = await getAnimeByMalId(supabase, malId)
 
     if (error) {
       throw new Error(error)
     }
 
     return data
+  } catch {
+    return null
   }
-
-  const { data, error } = await getAnimeByMalId(supabase, malId)
-
-  if (error) {
-    throw new Error(error)
-  }
-
-  return data
 }
 
 function formatArray(value: string[] | null) {
@@ -85,6 +92,24 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
 
   const bannerImage = anime.banner_image ?? anime.cover_image
   const coverImage = anime.cover_image ?? anime.banner_image
+  let user = null
+  let diaryEntry = null
+
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user: authenticatedUser },
+    } = await supabase.auth.getUser()
+    user = authenticatedUser
+
+    if (user) {
+      const entryResult = await getDiaryEntry(user.id, anime.id)
+      diaryEntry = entryResult.error ? null : entryResult.data
+    }
+  } catch {
+    user = null
+    diaryEntry = null
+  }
 
   return (
     <Container className="space-y-8 py-8">
@@ -164,6 +189,21 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
                 </div>
 
                 <div className="mt-6 space-y-4">
+                  <div className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h2 className="text-lg font-semibold">Diary</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Keep this anime in your private diary with your status, rating, and notes.
+                      </p>
+                    </div>
+                    <DiaryEntryDialog
+                      animeId={anime.id}
+                      animeTitle={anime.title}
+                      entry={diaryEntry}
+                      isLoggedIn={Boolean(user)}
+                    />
+                  </div>
+
                   <div>
                     <h2 className="text-xl font-semibold">Synopsis</h2>
                     <p className="mt-3 leading-7 text-muted-foreground">
