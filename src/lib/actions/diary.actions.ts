@@ -63,12 +63,23 @@ export async function addToDiaryAction(
     redirect("/login")
   }
 
+  console.error("🔷 addToDiaryAction authenticated user id:", user.id)
+
   const animeId = getString(formData, "animeId")
   const watchStatus = getWatchStatus(getString(formData, "watchStatus"))
   const episodesWatched = getOptionalNumber(formData, "episodesWatched")
   const rating = getOptionalNumber(formData, "rating")
   const favorite = getOptionalBoolean(formData, "favorite")
   const notes = getString(formData, "notes")
+
+  console.error("🔷 addToDiaryAction anime id:", animeId)
+  console.error("🔷 addToDiaryAction form values:", {
+    watchStatus,
+    episodesWatched,
+    rating,
+    favorite,
+    notes,
+  })
 
   if (!animeId) {
     return {
@@ -102,7 +113,10 @@ export async function addToDiaryAction(
     notes: notes || null,
   })
 
+  console.error("🔷 addToDiaryAction result:", JSON.stringify(result, null, 2))
+
   if (result.error) {
+    console.error("🔴 addToDiaryAction result error:", result.error)
     return {
       ...emptyState,
       error: result.error,

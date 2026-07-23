@@ -23,7 +23,7 @@ function mapServiceError(error: { message: string } | null): string | null {
     return null
   }
 
-  return "We couldn't update your diary right now. Please try again."
+  return error.message
 }
 
 export async function getUserAnime(userId: string): Promise<{ data: UserAnimeRow[]; error: string | null }> {
@@ -35,14 +35,23 @@ export async function getUserAnime(userId: string): Promise<{ data: UserAnimeRow
       .eq("user_id", userId)
       .order("updated_at", { ascending: false })
 
+    if (error) {
+      console.error("🔴 getUserAnime Supabase error:", JSON.stringify(error, null, 2))
+      console.error("🔴 Error code:", (error as any)?.code)
+      console.error("🔴 Error message:", error.message)
+      console.error("🔴 Error details:", (error as any)?.details)
+      console.error("🔴 Error hint:", (error as any)?.hint)
+    }
+
     return {
       data: (data ?? []) as UserAnimeRow[],
       error: mapServiceError(error),
     }
-  } catch {
+  } catch (error) {
+    console.error("🔴 getUserAnime caught error:", error)
     return {
       data: [],
-      error: "Unable to load your diary right now.",
+      error: error instanceof Error ? error.message : "Unable to load your diary right now.",
     }
   }
 }
@@ -57,14 +66,23 @@ export async function getDiaryEntry(userId: string, animeId: string): Promise<Di
       .eq("anime_id", animeId)
       .maybeSingle()
 
+    if (error) {
+      console.error("🔴 getDiaryEntry Supabase error:", JSON.stringify(error, null, 2))
+      console.error("🔴 Error code:", (error as any)?.code)
+      console.error("🔴 Error message:", error.message)
+      console.error("🔴 Error details:", (error as any)?.details)
+      console.error("🔴 Error hint:", (error as any)?.hint)
+    }
+
     return {
       data: (data as UserAnimeRow | null) ?? null,
       error: mapServiceError(error),
     }
-  } catch {
+  } catch (error) {
+    console.error("🔴 getDiaryEntry caught error:", error)
     return {
       data: null,
-      error: "Unable to load your diary right now.",
+      error: error instanceof Error ? error.message : "Unable to load your diary right now.",
     }
   }
 }
@@ -82,20 +100,34 @@ export async function addToDiary(data: DiaryEntryInput): Promise<DiaryEntryResul
       notes: data.notes ?? null,
     }
 
+    console.error("🔷 addToDiary payload:", JSON.stringify(payload, null, 2))
+
     const { data: inserted, error } = await supabase
       .from("user_anime")
       .insert(payload)
       .select("*")
       .single()
 
+    console.error("🔷 addToDiary returned:", JSON.stringify({ data: inserted ?? null, error }, null, 2))
+
+    if (error) {
+      console.error("🔴 Full Supabase error:", JSON.stringify(error, null, 2))
+      console.error("🔴 Error code:", (error as any)?.code)
+      console.error("🔴 Error message:", error.message)
+      console.error("🔴 Error details:", (error as any)?.details)
+      console.error("🔴 Error hint:", (error as any)?.hint)
+      console.error("🔴 addToDiary failed query: insert into user_anime", payload)
+    }
+
     return {
       data: (inserted as UserAnimeRow | null) ?? null,
       error: mapServiceError(error),
     }
-  } catch {
+  } catch (error) {
+    console.error("🔴 addToDiary caught error:", error)
     return {
       data: null,
-      error: "Unable to update your diary right now.",
+      error: error instanceof Error ? error.message : error instanceof Object ? JSON.stringify(error) : "Unable to update your diary right now.",
     }
   }
 }
@@ -118,14 +150,23 @@ export async function updateDiary(id: string, data: Partial<DiaryEntryInput>): P
       .select("*")
       .single()
 
+    if (error) {
+      console.error("🔴 updateDiary Supabase error:", JSON.stringify(error, null, 2))
+      console.error("🔴 Error code:", (error as any)?.code)
+      console.error("🔴 Error message:", error.message)
+      console.error("🔴 Error details:", (error as any)?.details)
+      console.error("🔴 Error hint:", (error as any)?.hint)
+    }
+
     return {
       data: (updated as UserAnimeRow | null) ?? null,
       error: mapServiceError(error),
     }
-  } catch {
+  } catch (error) {
+    console.error("🔴 updateDiary caught error:", error)
     return {
       data: null,
-      error: "Unable to update your diary right now.",
+      error: error instanceof Error ? error.message : error instanceof Object ? JSON.stringify(error) : "Unable to update your diary right now.",
     }
   }
 }
@@ -140,6 +181,11 @@ export async function toggleFavorite(id: string): Promise<DiaryEntryResult> {
       .maybeSingle()
 
     if (fetchError) {
+      console.error("🔴 toggleFavorite fetch error:", JSON.stringify(fetchError, null, 2))
+      console.error("🔴 Error code:", (fetchError as any)?.code)
+      console.error("🔴 Error message:", fetchError.message)
+      console.error("🔴 Error details:", (fetchError as any)?.details)
+      console.error("🔴 Error hint:", (fetchError as any)?.hint)
       return {
         data: null,
         error: mapServiceError(fetchError),
@@ -154,14 +200,23 @@ export async function toggleFavorite(id: string): Promise<DiaryEntryResult> {
       .select("*")
       .single()
 
+    if (error) {
+      console.error("🔴 toggleFavorite update error:", JSON.stringify(error, null, 2))
+      console.error("🔴 Error code:", (error as any)?.code)
+      console.error("🔴 Error message:", error.message)
+      console.error("🔴 Error details:", (error as any)?.details)
+      console.error("🔴 Error hint:", (error as any)?.hint)
+    }
+
     return {
       data: (updated as UserAnimeRow | null) ?? null,
       error: mapServiceError(error),
     }
-  } catch {
+  } catch (error) {
+    console.error("🔴 toggleFavorite caught error:", error)
     return {
       data: null,
-      error: "Unable to update your diary right now.",
+      error: error instanceof Error ? error.message : error instanceof Object ? JSON.stringify(error) : "Unable to update your diary right now.",
     }
   }
 }
@@ -171,12 +226,21 @@ export async function deleteDiaryEntry(id: string): Promise<{ error: string | nu
     const supabase = await createClient()
     const { error } = await supabase.from("user_anime").delete().eq("id", id)
 
+    if (error) {
+      console.error("🔴 deleteDiaryEntry Supabase error:", JSON.stringify(error, null, 2))
+      console.error("🔴 Error code:", (error as any)?.code)
+      console.error("🔴 Error message:", error.message)
+      console.error("🔴 Error details:", (error as any)?.details)
+      console.error("🔴 Error hint:", (error as any)?.hint)
+    }
+
     return {
       error: mapServiceError(error),
     }
-  } catch {
+  } catch (error) {
+    console.error("🔴 deleteDiaryEntry caught error:", error)
     return {
-      error: "Unable to update your diary right now.",
+      error: error instanceof Error ? error.message : error instanceof Object ? JSON.stringify(error) : "Unable to update your diary right now.",
     }
   }
 }

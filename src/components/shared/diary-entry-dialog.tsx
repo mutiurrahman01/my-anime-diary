@@ -220,19 +220,21 @@ export function DiaryEntryDialog({ animeId, animeTitle, entry, isLoggedIn }: Dia
                   <ActionMessage state={submitState} />
 
                   <DialogFooter className="flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-                    <form action={deleteAction} className="inline-flex">
-                      <input type="hidden" name="entryId" value={entry.id} />
-                      <Button type="submit" variant="destructive" disabled={deletePending}>
-                        {deletePending ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Removing
-                          </>
-                        ) : (
-                          "Remove"
-                        )}
-                      </Button>
-                    </form>
+                    <Button 
+                    type="submit" 
+                    formAction={deleteAction} 
+                    variant="destructive" 
+                    disabled={deletePending}
+                  >
+                    {deletePending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Removing
+                      </>
+                    ) : (
+                      "Remove"
+                    )}
+                  </Button>
                     <div className="flex gap-2">
                       <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                         Cancel
