@@ -18,6 +18,53 @@ export type DiaryEntryResult = {
   error: string | null
 }
 
+export type DiaryEntryWithAnime = UserAnimeRow & {
+  anime: {
+    id: string
+    title: string
+    slug: string
+    cover_image: string | null
+    release_year: number | null
+  } | null
+}
+
+export type DiarySortBy =
+  | "updated_at"
+  | "rating"
+  | "episodes_watched"
+  | "title"
+
+function normalizeAnimeRelation(entry: any): DiaryEntryWithAnime {
+  let anime = null
+
+  if (entry?.anime) {
+    anime = Array.isArray(entry.anime) ? entry.anime[0] ?? null : entry.anime
+  }
+
+  return {
+    ...entry,
+    anime,
+  }
+}
+
+function sortDiaryEntries(entries: DiaryEntryWithAnime[], sortBy: DiarySortBy) {
+  return [...entries].sort((a, b) => {
+    if (sortBy === "title") {
+      return (a.anime?.title ?? "").localeCompare(b.anime?.title ?? "")
+    }
+
+    if (sortBy === "rating") {
+      return (b.rating ?? 0) - (a.rating ?? 0)
+    }
+
+    if (sortBy === "episodes_watched") {
+      return (b.episodes_watched ?? 0) - (a.episodes_watched ?? 0)
+    }
+
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+  })
+}
+
 function mapServiceError(error: { message: string } | null): string | null {
   if (!error) {
     return null
@@ -82,6 +129,54 @@ export async function getDiaryEntry(userId: string, animeId: string): Promise<Di
     console.error("🔴 getDiaryEntry caught error:", error)
     return {
       data: null,
+      error: error instanceof Error ? error.message : "Unable to load your diary right now.",
+    }
+  }
+}
+
+export async function getUserDiaryEntries(
+  userId: string,
+  sortBy: DiarySortBy = "updated_at"
+): Promise<{ data: DiaryEntryWithAnime[]; error: string | null }> {
+  try {
+    const supabase = await createClient()
+    const selectQuery = `
+          *,
+          anime:anime_id (
+            id,
+            title,
+            slug,
+            cover_image,
+            release_year
+          )
+        `
+
+    const request = supabase.from("user_anime").select(selectQuery).eq("user_id", userId)
+
+    const orderedRequest = sortBy === "title"
+      ? request.order("anime.title", { ascending: true, nullsFirst: true })
+      : request.order(sortBy, { ascending: false, nullsFirst: false })
+
+    const { data, error } = await orderedRequest
+
+    if (error) {
+      console.error("🔴 getUserDiaryEntries Supabase error:", JSON.stringify(error, null, 2))
+      console.error("🔴 Error code:", (error as any)?.code)
+      console.error("🔴 Error message:", error.message)
+      console.error("🔴 Error details:", (error as any)?.details)
+      console.error("🔴 Error hint:", (error as any)?.hint)
+    }
+
+    const entries = (data ?? []).map(normalizeAnimeRelation) as DiaryEntryWithAnime[]
+
+    return {
+      data: sortDiaryEntries(entries, sortBy),
+      error: mapServiceError(error),
+    }
+  } catch (error) {
+    console.error("🔴 getUserDiaryEntries caught error:", error)
+    return {
+      data: [],
       error: error instanceof Error ? error.message : "Unable to load your diary right now.",
     }
   }
