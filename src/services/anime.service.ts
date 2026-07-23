@@ -32,7 +32,7 @@ export async function searchAnime(
 
   let request = supabase
     .from("anime")
-    .select("id, title, english_title, slug, cover_image, release_year, score")
+    .select("id, mal_id, title, english_title, slug, cover_image, release_year, score")
     .is("deleted_at", null)
     .order("popularity", { ascending: true, nullsFirst: false })
     .limit(limit)
@@ -56,12 +56,30 @@ export async function getAnimeBySlug(
   supabase: SupabaseClient<Database>,
   slug: string
 ): Promise<{ data: AnimeRow | null; error: string | null }> {
+  console.log("🔍 getAnimeBySlug called with:", slug)
+
   const { data, error } = await supabase
     .from("anime")
     .select("*")
     .eq("slug", slug)
     .is("deleted_at", null)
     .maybeSingle()
+
+  return {
+    data: (data as AnimeRow | null) ?? null,
+    error: mapSearchError(error),
+  }
+}
+
+export async function getAnimeByMalId(
+  supabase: SupabaseClient<Database>,
+  malId: number
+): Promise<{ data: AnimeRow | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from("anime")
+    .select("*")
+    .eq("mal_id", malId)
+    .single()
 
   return {
     data: (data as AnimeRow | null) ?? null,

@@ -10,7 +10,8 @@ interface AnimeCardProps extends React.HTMLAttributes<HTMLDivElement> {
   coverImage?: string
   releaseYear?: number
   rating?: number
-  slug: string
+  slug?: string
+  malId?: number | null
 }
 
 export function AnimeCard({
@@ -19,9 +20,16 @@ export function AnimeCard({
   releaseYear,
   rating,
   slug,
+  malId,
   className,
   ...props
 }: AnimeCardProps) {
+  const href = slug ? `/anime/${slug}` : malId != null ? `/anime/${malId}` : "/"
+
+  if (process.env.NODE_ENV !== "production") {
+    console.log("🔗 AnimeCard:", { title, slug, malId, href })
+  }
+
   return (
     <div
       className={cn(
@@ -30,7 +38,7 @@ export function AnimeCard({
       )}
       {...props}
     >
-      <Link href={`/anime/${slug}`} className="absolute inset-0 z-10">
+      <Link href={href} className="absolute inset-0 z-10">
         <span className="sr-only">View {title}</span>
       </Link>
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted">

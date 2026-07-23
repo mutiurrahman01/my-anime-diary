@@ -109,6 +109,7 @@ export default function SearchPage() {
               key={anime.id}
               title={anime.english_title?.trim() || anime.title}
               slug={anime.slug}
+              malId={anime.mal_id ?? null}
               coverImage={anime.cover_image ?? undefined}
               releaseYear={anime.release_year ?? undefined}
               rating={anime.score !== null ? Math.round(anime.score) : undefined}

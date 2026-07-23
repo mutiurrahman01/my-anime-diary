@@ -4,7 +4,7 @@ import { notFound } from "next/navigation"
 import { Container } from "@/components/layout/container"
 import { RatingStars } from "@/components/shared/rating-stars"
 import { createClient } from "@/lib/supabase/server"
-import { getAnimeBySlug } from "@/services/anime.service"
+import { getAnimeByMalId, getAnimeBySlug } from "@/services/anime.service"
 import type { AnimeRow } from "@/types/database"
 import { cn } from "@/lib/utils"
 
@@ -14,9 +14,22 @@ type AnimeDetailsPageProps = {
   }
 }
 
-async function fetchAnime(slug: string) {
+async function fetchAnime(param: string) {
+  console.log("📄 Page slug param:", param)
+  const malId = Number(param)
   const supabase = await createClient()
-  const { data, error } = await getAnimeBySlug(supabase, slug)
+
+  if (!Number.isInteger(malId) || malId <= 0) {
+    const { data, error } = await getAnimeBySlug(supabase, param)
+
+    if (error) {
+      throw new Error(error)
+    }
+
+    return data
+  }
+
+  const { data, error } = await getAnimeByMalId(supabase, malId)
 
   if (error) {
     throw new Error(error)
@@ -34,8 +47,9 @@ function formatDescription(synopsis: string | null) {
   return text.length > 150 ? `${text.slice(0, 147)}...` : text
 }
 
-export async function generateMetadata({ params }: AnimeDetailsPageProps): Promise<Metadata> {
-  const anime = await fetchAnime(params.slug)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const anime = await fetchAnime(slug)
 
   if (!anime) {
     return {
@@ -50,8 +64,9 @@ export async function generateMetadata({ params }: AnimeDetailsPageProps): Promi
   }
 }
 
-export default async function AnimeDetailsPage({ params }: AnimeDetailsPageProps) {
-  const anime = await fetchAnime(params.slug)
+export default async function AnimeDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const anime = await fetchAnime(slug)
 
   if (!anime) {
     notFound()

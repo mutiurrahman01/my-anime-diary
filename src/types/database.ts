@@ -211,5 +211,5 @@ export type AnimeInsert = Database["public"]["Tables"]["anime"]["Insert"]
 
 export type AnimeListItem = Pick<
   AnimeRow,
-  "id" | "title" | "english_title" | "slug" | "cover_image" | "release_year" | "score"
+  "id" | "mal_id" | "title" | "english_title" | "slug" | "cover_image" | "release_year" | "score"
 >
