@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useRef, useState } from "react"
+import NextImage from "next/image"
 import { ImagePlus, Loader2, User } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -141,10 +142,12 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
         <div className="flex items-center gap-6">
           <div className="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border bg-muted">
             {avatarPreview ? (
-              <img
+              <NextImage
                 src={avatarPreview}
                 alt="Profile"
-                className="h-full w-full object-cover"
+                fill
+                className="object-cover"
+                unoptimized
               />
             ) : (
               <span className="text-2xl font-semibold text-muted-foreground">

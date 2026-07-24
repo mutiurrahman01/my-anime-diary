@@ -1,5 +1,4 @@
 
-
 import { createClient } from "@/lib/supabase/server"
 import type { Database } from "@/types/database"
 
@@ -27,7 +26,7 @@ export async function getProfile(userId: string): Promise<ProfileResult> {
       .eq("id", userId)
       .maybeSingle()
 
-    if (error) {
+    if (error && process.env.NODE_ENV === "development") {
       console.error("🔴 getProfile Supabase error:", JSON.stringify(error, null, 2))
     }
 
@@ -36,7 +35,9 @@ export async function getProfile(userId: string): Promise<ProfileResult> {
       error: mapServiceError(error),
     }
   } catch (error) {
-    console.error("🔴 getProfile caught error:", error)
+    if (process.env.NODE_ENV === "development") {
+      console.error("🔴 getProfile caught error:", error)
+    }
     return {
       data: null,
       error: error instanceof Error ? error.message : "Unable to load your profile.",
@@ -57,20 +58,17 @@ export async function checkUsernameAvailability(
       .neq("id", excludeUserId)
       .maybeSingle()
 
-    if (error) {
+    if (error && process.env.NODE_ENV === "development") {
       console.error("🔴 checkUsernameAvailability Supabase error:", JSON.stringify(error, null, 2))
-      return {
-        available: false,
-        error: mapServiceError(error),
-      }
     }
-
     return {
       available: !data,
-      error: null,
+      error: mapServiceError(error),
     }
   } catch (error) {
-    console.error("🔴 checkUsernameAvailability caught error:", error)
+    if (process.env.NODE_ENV === "development") {
+      console.error("🔴 checkUsernameAvailability caught error:", error)
+    }
     return {
       available: false,
       error: error instanceof Error ? error.message : "Unable to check username availability.",
@@ -91,7 +89,7 @@ export async function updateProfile(
       .select("*")
       .single()
 
-    if (error) {
+    if (error && process.env.NODE_ENV === "development") {
       console.error("🔴 updateProfile Supabase error:", JSON.stringify(error, null, 2))
     }
 
@@ -100,7 +98,9 @@ export async function updateProfile(
       error: mapServiceError(error),
     }
   } catch (error) {
-    console.error("🔴 updateProfile caught error:", error)
+    if (process.env.NODE_ENV === "development") {
+      console.error("🔴 updateProfile caught error:", error)
+    }
     return {
       data: null,
       error: error instanceof Error ? error.message : "Unable to update your profile.",
@@ -125,7 +125,9 @@ async function deleteOldAvatar(
     // Find the index of "avatars" in the path to get the file path after it
     const avatarsIndex = pathParts.indexOf("avatars")
     if (avatarsIndex === -1 || avatarsIndex === pathParts.length - 1) {
-      console.warn("⚠️ Could not extract file path from avatar URL:", oldAvatarUrl)
+      if (process.env.NODE_ENV === "development") {
+        console.warn("⚠️ Could not extract file path from avatar URL:", oldAvatarUrl)
+      }
       return
     }
     const oldFilePath = pathParts.slice(avatarsIndex + 1).join("/")
@@ -134,11 +136,13 @@ async function deleteOldAvatar(
       .from("avatars")
       .remove([oldFilePath])
 
-    if (deleteError) {
+    if (deleteError && process.env.NODE_ENV === "development") {
       console.error("🔴 deleteOldAvatar error:", JSON.stringify(deleteError, null, 2))
     }
   } catch (error) {
-    console.error("🔴 deleteOldAvatar caught error:", error)
+    if (process.env.NODE_ENV === "development") {
+      console.error("🔴 deleteOldAvatar caught error:", error)
+    }
   }
 }
 
@@ -169,8 +173,11 @@ export async function uploadAvatar(
         upsert: false,
       })
 
-    if (uploadError) {
+    if (uploadError && process.env.NODE_ENV === "development") {
       console.error("🔴 uploadAvatar Supabase upload error:", JSON.stringify(uploadError, null, 2))
+    }
+
+    if (uploadError) {
       return {
         url: null,
         error: mapServiceError(uploadError),
@@ -186,10 +193,13 @@ export async function uploadAvatar(
       error: null,
     }
   } catch (error) {
-    console.error("🔴 uploadAvatar caught error:", error)
+    if (process.env.NODE_ENV === "development") {
+      console.error("🔴 uploadAvatar caught error:", error)
+    }
     return {
       url: null,
       error: error instanceof Error ? error.message : "Unable to upload your avatar.",
     }
   }
 }
+

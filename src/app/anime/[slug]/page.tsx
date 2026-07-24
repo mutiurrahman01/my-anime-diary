@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Image from "next/image"
 import { notFound } from "next/navigation"
 
 import { Container } from "@/components/layout/container"
@@ -17,7 +18,9 @@ type AnimeDetailsPageProps = {
 }
 
 async function fetchAnime(param: string) {
-  console.log("📄 Page slug param:", param)
+  if (process.env.NODE_ENV === "development") {
+    console.log("📄 Page slug param:", param)
+  }
   const malId = Number(param)
 
   try {
@@ -116,10 +119,13 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
       <div className="overflow-hidden rounded-3xl border border-border bg-card">
         {bannerImage ? (
           <div className="relative h-64 w-full overflow-hidden bg-slate-950">
-            <img
+            <Image
               src={bannerImage}
               alt={anime.title}
-              className="h-full w-full object-cover"
+              fill
+              className="object-cover"
+              priority
+              sizes="100vw"
             />
             <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-slate-950/90 to-transparent" />
           </div>
@@ -132,15 +138,18 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
         <div className="px-6 py-8 lg:px-10">
           <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
             <div className="space-y-6">
-              <div className="overflow-hidden rounded-3xl border border-border bg-muted">
+              <div className="relative overflow-hidden rounded-3xl border border-border bg-muted aspect-[3/4]">
                 {coverImage ? (
-                  <img
+                  <Image
                     src={coverImage}
                     alt={`${anime.title} cover`}
-                    className="h-full w-full object-cover"
+                    fill
+                    className="object-cover"
+                    loading="lazy"
+                    sizes="(max-width: 768px) 100vw, 280px"
                   />
                 ) : (
-                  <div className="flex h-96 items-center justify-center p-8 text-center text-sm text-muted-foreground">
+                  <div className="flex h-full items-center justify-center p-8 text-center text-sm text-muted-foreground">
                     No cover image available
                   </div>
                 )}

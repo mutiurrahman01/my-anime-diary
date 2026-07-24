@@ -56,7 +56,9 @@ export async function getAnimeBySlug(
   supabase: SupabaseClient<Database>,
   slug: string
 ): Promise<{ data: AnimeRow | null; error: string | null }> {
-  console.log("🔍 getAnimeBySlug called with:", slug)
+  if (process.env.NODE_ENV === "development") {
+    console.log("🔍 getAnimeBySlug called with:", slug)
+  }
 
   const { data, error } = await supabase
     .from("anime")

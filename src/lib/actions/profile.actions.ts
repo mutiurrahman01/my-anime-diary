@@ -131,9 +131,9 @@ export async function uploadAvatarAction(
     return { ...emptyState, error: "Only JPEG, PNG, or WebP files are allowed." }
   }
 
-  // Validate file size (2MB max)
+  // Validate file size (1MB max)
   if (file.size > 1 * 1024 * 1024) {
-    return { ...emptyState, error: "Image file size must be less than 2MB." }
+    return { ...emptyState, error: "Image file size must be less than 1MB." }
   }
 
   // Upload avatar

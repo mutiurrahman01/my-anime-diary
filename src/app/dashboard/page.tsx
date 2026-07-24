@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { redirect } from "next/navigation"
 import {
   CalendarClock,
@@ -183,12 +184,15 @@ export default async function DashboardPage() {
                 key={item.id}
                 className="flex flex-col gap-4 rounded-2xl border bg-background p-4 sm:flex-row sm:items-center"
               >
-                <div className="flex h-20 w-14 overflow-hidden rounded-lg bg-muted">
+                <div className="relative flex h-20 w-14 overflow-hidden rounded-lg bg-muted">
                   {item.anime?.cover_image ? (
-                    <img
+                    <Image
                       src={item.anime.cover_image}
                       alt={item.anime.title}
-                      className="h-full w-full object-cover"
+                      fill
+                      className="object-cover"
+                      loading="lazy"
+                      sizes="56px"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-muted-foreground/40">

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { redirect } from "next/navigation"
 import { BookOpen, CalendarDays, Heart, User } from "lucide-react"
 
@@ -81,12 +82,15 @@ export default async function ProfilePage() {
       <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
         <section className="rounded-2xl border bg-card p-6 shadow-sm">
           <div className="flex flex-col items-center gap-4 text-center">
-            <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border bg-muted">
+            <div className="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border bg-muted">
               {profile?.avatar_url ? (
-                <img
+                <Image
                   src={profile.avatar_url}
                   alt={displayName}
-                  className="h-full w-full object-cover"
+                  fill
+                  className="object-cover"
+                  loading="lazy"
+                  sizes="112px"
                 />
               ) : (
                 <span className="text-2xl font-semibold text-muted-foreground">
