@@ -125,14 +125,15 @@ export async function uploadAvatarAction(
     return { ...emptyState, error: "Please select an image file." }
   }
 
-  // Validate file type
-  if (!file.type.startsWith("image/")) {
-    return { ...emptyState, error: "Only image files are allowed." }
+  // Validate allowed file types
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"]
+  if (!allowedTypes.includes(file.type)) {
+    return { ...emptyState, error: "Only JPEG, PNG, or WebP files are allowed." }
   }
 
-  // Validate file size (5MB max
-  if (file.size > 5 * 1024 * 1024) {
-    return { ...emptyState, error: "Image file size must be less than 5MB." }
+  // Validate file size (2MB max)
+  if (file.size > 1 * 1024 * 1024) {
+    return { ...emptyState, error: "Image file size must be less than 2MB." }
   }
 
   // Upload avatar

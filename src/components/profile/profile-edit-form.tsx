@@ -14,6 +14,64 @@ type ProfileEditFormProps = {
   initials: string
 }
 
+// Function to compress image
+function compressImage(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (e) => {
+      const img = new Image()
+      img.src = e.target?.result as string
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        const maxWidth = 400
+        const maxHeight = 400
+        let width = img.width
+        let height = img.height
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width)
+            width = maxWidth
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height)
+            height = maxHeight
+          }
+        }
+
+        canvas.width = width
+        canvas.height = height
+
+        const ctx = canvas.getContext("2d")
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height)
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: "image/jpeg",
+                  lastModified: Date.now(),
+                })
+                resolve(compressedFile)
+              } else {
+                reject(new Error("Failed to compress image"))
+              }
+            },
+            "image/jpeg",
+            0.7
+          )
+        } else {
+          reject(new Error("Failed to get canvas context"))
+        }
+      }
+      img.onerror = () => reject(new Error("Failed to load image"))
+    }
+    reader.onerror = () => reject(new Error("Failed to read file"))
+  })
+}
+
 export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
   const [profileState, profileAction, profilePending] = React.useActionState(
     updateProfileAction,
@@ -26,13 +84,24 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(
     profile.avatar_url
   )
+  const [compressedFile, setCompressedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      const previewUrl = URL.createObjectURL(file)
-      setAvatarPreview(previewUrl)
+      try {
+        const compressed = await compressImage(file)
+        setCompressedFile(compressed)
+        const previewUrl = URL.createObjectURL(compressed)
+        setAvatarPreview(previewUrl)
+      } catch (error) {
+        console.error("Compression error:", error)
+        // Fallback to original file if compression fails
+        setCompressedFile(file)
+        const previewUrl = URL.createObjectURL(file)
+        setAvatarPreview(previewUrl)
+      }
     }
   }
 
@@ -100,7 +169,7 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
               <ImagePlus className="h-4 w-4" />
               Change Avatar
             </Button>
-            {avatarPreview && (
+            {avatarPreview && compressedFile && (
               <form action={avatarAction} className="space-y-2">
                 <input
                   type="file"
@@ -109,7 +178,10 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
                   className="hidden"
                   ref={(el) => {
                     if (el) {
-                      el.files = fileInputRef.current?.files || null
+                      // Create a DataTransfer object to set the compressed file
+                      const dataTransfer = new DataTransfer()
+                      dataTransfer.items.add(compressedFile)
+                      el.files = dataTransfer.files
                     }
                   }}
                   readOnly
