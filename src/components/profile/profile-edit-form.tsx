@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import NextImage from "next/image"
 import { ImagePlus, Loader2, User } from "lucide-react"
-import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,7 +15,6 @@ type ProfileEditFormProps = {
   initials: string
 }
 
-// Function to compress image
 function compressImage(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -83,6 +81,7 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
     uploadAvatarAction,
     { error: null, message: null }
   )
+
   const [avatarPreview, setAvatarPreview] = useState<string | null>(
     profile.avatar_url
   )
@@ -94,13 +93,13 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
     bio: profile?.bio || "",
     website: profile?.website || "",
   })
-  const router = useRouter()
 
   useEffect(() => {
     if (state?.message) {
-      router.refresh()
+      console.log("🔄 Reloading page...")
+      window.location.reload()
     }
-  }, [state, router])
+  }, [state])
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

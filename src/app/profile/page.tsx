@@ -13,6 +13,9 @@ import { getProfile } from "@/services/profile.service"
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
 
+export const dynamic = "force-dynamic"
+export const fetchCache = "force-no-store"
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en", {
     month: "long",
