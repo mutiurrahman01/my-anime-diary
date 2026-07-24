@@ -87,6 +87,12 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
   )
   const [compressedFile, setCompressedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [formData, setFormData] = useState({
+    username: profile?.username || "",
+    displayName: profile?.display_name || "",
+    bio: profile?.bio || "",
+    website: profile?.website || "",
+  })
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -104,6 +110,22 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
         setAvatarPreview(previewUrl)
       }
     }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
   }
 
   return (

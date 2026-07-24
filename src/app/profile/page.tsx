@@ -89,7 +89,8 @@ export default async function ProfilePage() {
                   alt={displayName}
                   fill
                   priority
-                  className="object-cover"
+                  sizes="(max-width: 768px) 28vw, 112px"
+                  className="object-cover rounded-full"
                 />
               ) : (
                 <span className="text-2xl font-semibold text-muted-foreground">

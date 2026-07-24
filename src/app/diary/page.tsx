@@ -27,10 +27,13 @@ function getSortOption(value?: string): DiarySortBy {
 }
 
 export default async function DiaryPage({
-  searchParams,
+  searchParams: searchParamsPromise,
 }: {
-  searchParams?: { sort?: string }
+  searchParams: Promise<{ sort?: string }>
 }) {
+  const searchParams = await searchParamsPromise
+  const sort = searchParams.sort
+
   const supabase = await createClient()
   const {
     data: { user },
@@ -40,7 +43,7 @@ export default async function DiaryPage({
     redirect("/login")
   }
 
-  const sortBy = getSortOption(searchParams?.sort)
+  const sortBy = getSortOption(sort)
   const diaryResponse = await getUserDiaryEntries(user.id, sortBy)
   const diaryEntries = diaryResponse.data
 
