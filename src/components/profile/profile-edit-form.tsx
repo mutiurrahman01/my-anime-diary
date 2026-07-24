@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import NextImage from "next/image"
 import { ImagePlus, Loader2, User } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -74,7 +75,7 @@ function compressImage(file: File): Promise<File> {
 }
 
 export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
-  const [profileState, profileAction, profilePending] = React.useActionState(
+  const [state, formAction, isPending] = React.useActionState(
     updateProfileAction,
     { error: null, message: null }
   )
@@ -93,6 +94,13 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
     bio: profile?.bio || "",
     website: profile?.website || "",
   })
+  const router = useRouter()
+
+  useEffect(() => {
+    if (state?.message) {
+      router.refresh()
+    }
+  }, [state, router])
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -104,7 +112,6 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
         setAvatarPreview(previewUrl)
       } catch (error) {
         console.error("Compression error:", error)
-        // Fallback to original file if compression fails
         setCompressedFile(file)
         const previewUrl = URL.createObjectURL(file)
         setAvatarPreview(previewUrl)
@@ -131,14 +138,14 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
   return (
     <section className="space-y-8 rounded-2xl border bg-card p-6 shadow-sm">
       {/* Success/Error Messages */}
-      {profileState.message && (
+      {state?.message && (
         <div className="rounded-lg border bg-green-50 p-4 text-sm text-green-800 dark:bg-green-900/20 dark:text-green-400">
-          {profileState.message}
+          {state.message}
         </div>
       )}
-      {profileState.error && (
+      {state?.error && (
         <div className="rounded-lg border bg-red-50 p-4 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">
-          {profileState.error}
+          {state.error}
         </div>
       )}
       {avatarState.message && (
@@ -203,7 +210,6 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
                   className="hidden"
                   ref={(el) => {
                     if (el) {
-                      // Create a DataTransfer object to set the compressed file
                       const dataTransfer = new DataTransfer()
                       dataTransfer.items.add(compressedFile)
                       el.files = dataTransfer.files
@@ -226,7 +232,7 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
       </div>
 
       {/* Profile Form */}
-      <form action={profileAction} className="space-y-4">
+      <form action={formAction} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <label htmlFor="username" className="text-sm font-medium">
@@ -282,10 +288,10 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
 
         <Button
           type="submit"
-          disabled={profilePending}
+          disabled={isPending}
           className="flex items-center gap-2"
         >
-          {profilePending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
           Save Changes
         </Button>
       </form>

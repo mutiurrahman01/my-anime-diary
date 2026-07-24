@@ -99,11 +99,11 @@ export async function updateProfileAction(
     return { ...emptyState, error: result.error }
   }
 
-  revalidatePath("/profile")
-  revalidatePath("/settings")
-  revalidatePath("/dashboard")
+  // After successful update:
+  revalidatePath('/profile')
+  revalidatePath('/dashboard')
 
-  return { ...emptyState, message: "Profile updated successfully!" }
+  return { error: null, message: 'Profile updated successfully!' }
 }
 
 export async function uploadAvatarAction(
@@ -151,9 +151,9 @@ export async function uploadAvatarAction(
     return { ...emptyState, error: updateResult.error }
   }
 
-  revalidatePath("/profile")
-  revalidatePath("/settings")
-  revalidatePath("/dashboard")
+  // After successful update:
+  revalidatePath('/profile')
+  revalidatePath('/dashboard')
 
-  return { ...emptyState, message: "Avatar updated successfully!" }
+  return { error: null, message: 'Avatar updated successfully!' }
 }
