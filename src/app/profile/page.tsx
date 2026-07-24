@@ -7,6 +7,8 @@ import { PageHeader } from "@/components/shared/page-header"
 import { EmptyState } from "@/components/shared/empty-state"
 import { StatCard } from "@/components/shared/stat-card"
 import { buttonVariants } from "@/components/ui/button"
+import { ProfileEditForm } from "@/components/profile/profile-edit-form"
+import { getProfile } from "@/services/profile.service"
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
 
@@ -27,13 +29,9 @@ export default async function ProfilePage() {
     redirect("/login")
   }
 
-  const [profileResponse, watchedResponse, favoriteResponse, episodeResponse] =
+  const [profileResult, watchedResponse, favoriteResponse, episodeResponse] =
     await Promise.all([
-      supabase
-        .from("profiles")
-        .select("username, avatar_url, created_at")
-        .eq("id", user.id)
-        .maybeSingle(),
+      getProfile(user.id),
       supabase
         .from("user_anime")
         .select("id", { count: "exact", head: true })
@@ -49,14 +47,20 @@ export default async function ProfilePage() {
         .eq("user_id", user.id),
     ])
 
-  const profile = profileResponse.data
+  const profile = profileResult.data
+  if (!profile) {
+    redirect("/login")
+  }
   const watchedCount = watchedResponse.count ?? 0
   const favoriteCount = favoriteResponse.count ?? 0
   const episodesWatched = (episodeResponse.data ?? []).reduce((total, item) => {
     return total + (item.episodes_watched ?? 0)
   }, 0)
   const displayName =
-    profile?.username?.trim() || user.email?.split("@")[0] || "Anime fan"
+    profile.display_name?.trim() ||
+    profile.username?.trim() ||
+    user.email?.split("@")[0] ||
+    "Anime fan"
   const joinDate = profile?.created_at ?? user.created_at
   const joinLabel = joinDate ? formatDate(joinDate) : "Unknown"
   const hasDiaryData = watchedCount > 0
@@ -116,6 +120,7 @@ export default async function ProfilePage() {
         </section>
 
         <div className="space-y-6">
+          <ProfileEditForm profile={profile} initials={initials} />
           <section className="grid gap-4 md:grid-cols-3">
             <StatCard
               label="Anime watched"
