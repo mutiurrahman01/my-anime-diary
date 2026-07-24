@@ -108,14 +108,59 @@ export async function updateProfile(
   }
 }
 
+async function deleteOldAvatar(
+  userId: string,
+  oldAvatarUrl: string | null
+): Promise<void> {
+  if (!oldAvatarUrl) {
+    return
+  }
+
+  try {
+    const supabase = await createClient()
+
+    // Extract file path from public URL
+    const url = new URL(oldAvatarUrl)
+    const pathParts = url.pathname.split("/")
+    // Find the index of "avatars" in the path to get the file path after it
+    const avatarsIndex = pathParts.indexOf("avatars")
+    if (avatarsIndex === -1 || avatarsIndex === pathParts.length - 1) {
+      console.warn("⚠️ Could not extract file path from avatar URL:", oldAvatarUrl)
+      return
+    }
+    const oldFilePath = pathParts.slice(avatarsIndex + 1).join("/")
+
+    const { error: deleteError } = await supabase.storage
+      .from("avatars")
+      .remove([oldFilePath])
+
+    if (deleteError) {
+      console.error("🔴 deleteOldAvatar error:", JSON.stringify(deleteError, null, 2))
+    }
+  } catch (error) {
+    console.error("🔴 deleteOldAvatar caught error:", error)
+  }
+}
+
 export async function uploadAvatar(
   userId: string,
   file: File
 ): Promise<{ url: string | null; error: string | null }> {
   try {
     const supabase = await createClient()
+    // First get current profile to get old avatar URL
+    const { data: currentProfile } = await supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", userId)
+      .maybeSingle()
+
+    // Delete old avatar if exists
+    await deleteOldAvatar(userId, currentProfile?.avatar_url)
+
     const fileExt = file.name.split(".").pop()
-    const filePath = `${userId}-${Date.now()}.${fileExt}`
+    const fileName = `${Date.now()}.${fileExt}`
+    const filePath = `${userId}/${fileName}`
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
