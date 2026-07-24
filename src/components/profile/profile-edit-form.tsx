@@ -235,7 +235,7 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
             <Input
               id="username"
               name="username"
-              defaultValue={profile.username || ""}
+              defaultValue={formData.username || ""}
               placeholder="Enter username"
             />
             <p className="text-xs text-muted-foreground">
@@ -249,7 +249,7 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
             <Input
               id="displayName"
               name="displayName"
-              defaultValue={profile.display_name || ""}
+              defaultValue={formData.displayName || ""}
               placeholder="Enter display name"
             />
           </div>
@@ -262,7 +262,7 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
           <Textarea
             id="bio"
             name="bio"
-            defaultValue={profile.bio || ""}
+            defaultValue={formData.bio || ""}
             placeholder="Tell us about yourself..."
             rows={3}
           />
@@ -275,7 +275,7 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
           <Input
             id="website"
             name="website"
-            defaultValue={profile.website || ""}
+            defaultValue={formData.website || ""}
             placeholder="https://example.com"
           />
         </div>
