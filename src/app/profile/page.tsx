@@ -88,9 +88,8 @@ export default async function ProfilePage() {
                   src={profile.avatar_url}
                   alt={displayName}
                   fill
+                  priority
                   className="object-cover"
-                  loading="lazy"
-                  sizes="112px"
                 />
               ) : (
                 <span className="text-2xl font-semibold text-muted-foreground">

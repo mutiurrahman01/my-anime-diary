@@ -57,20 +57,42 @@ function formatDescription(synopsis: string | null) {
   return text.length > 150 ? `${text.slice(0, 147)}...` : text
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
   const { slug } = await params
-  const anime = await fetchAnime(slug)
+  const supabase = await createClient()
+  const { data: anime, error } = await getAnimeBySlug(supabase, slug)
 
-  if (!anime) {
+  if (error || !anime) {
     return {
-      title: "Anime Not Found | AnimeDiary",
+      title: "Anime Not Found",
       description: "The requested anime was not found.",
     }
   }
 
+  const description = anime.synopsis?.slice(0, 150) || "Anime details page"
+
   return {
-    title: `${anime.title} | AnimeDiary`,
-    description: formatDescription(anime.synopsis),
+    title: anime.title,
+    description,
+    openGraph: {
+      title: anime.title,
+      description,
+      images: anime.cover_image ? [anime.cover_image] : [],
+      url: `https://myanimediary.com/anime/${slug}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: anime.title,
+      description,
+      images: anime.cover_image ? [anime.cover_image] : [],
+    },
+    alternates: {
+      canonical: `https://myanimediary.com/anime/${slug}`,
+    },
   }
 }
 
@@ -114,131 +136,155 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
     diaryEntry = null
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "TVSeries",
+    name: anime.title,
+    description: anime.synopsis,
+    image: anime.cover_image,
+    numberOfEpisodes: anime.episodes,
+    genre: anime.genres,
+    datePublished: anime.release_year,
+    aggregateRating: anime.score
+      ? {
+          "@type": "AggregateRating",
+          ratingValue: anime.score,
+          bestRating: 10,
+        }
+      : undefined,
+  }
+
   return (
-    <Container className="space-y-8 py-8">
-      <div className="overflow-hidden rounded-3xl border border-border bg-card">
-        {bannerImage ? (
-          <div className="relative h-64 w-full overflow-hidden bg-slate-950">
-            <Image
-              src={bannerImage}
-              alt={anime.title}
-              fill
-              className="object-cover"
-              priority
-              sizes="100vw"
-            />
-            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-slate-950/90 to-transparent" />
-          </div>
-        ) : (
-          <div className="flex h-64 items-center justify-center bg-slate-950 text-muted-foreground">
-            No banner available
-          </div>
-        )}
-
-        <div className="px-6 py-8 lg:px-10">
-          <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
-            <div className="space-y-6">
-              <div className="relative overflow-hidden rounded-3xl border border-border bg-muted aspect-[3/4]">
-                {coverImage ? (
-                  <Image
-                    src={coverImage}
-                    alt={`${anime.title} cover`}
-                    fill
-                    className="object-cover"
-                    loading="lazy"
-                    sizes="(max-width: 768px) 100vw, 280px"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center p-8 text-center text-sm text-muted-foreground">
-                    No cover image available
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-3 rounded-3xl border border-border bg-background p-5">
-                <div className="space-y-1">
-                  <h1 className="text-3xl font-semibold tracking-tight">{anime.title}</h1>
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    {anime.english_title || anime.japanese_title
-                      ? [anime.english_title, anime.japanese_title]
-                          .filter(Boolean)
-                          .join(" · ")
-                      : "No alternate titles available."}
-                  </p>
-                </div>
-
-                <div className="grid gap-2 text-sm text-muted-foreground">
-                  <p>
-                    <span className="font-medium text-foreground">Genres:</span>{" "}
-                    {formatArray(anime.genres)}
-                  </p>
-                  <p>
-                    <span className="font-medium text-foreground">Studios:</span>{" "}
-                    {formatArray(anime.studios)}
-                  </p>
-                </div>
-              </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <Container className="space-y-8 py-8">
+        <div className="overflow-hidden rounded-3xl border border-border bg-card">
+          {bannerImage ? (
+            <div className="relative h-64 w-full overflow-hidden bg-slate-950">
+              <Image
+                src={bannerImage}
+                alt={anime.title}
+                fill
+                className="object-cover"
+                priority
+                sizes="100vw"
+              />
+              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-slate-950/90 to-transparent" />
             </div>
+          ) : (
+            <div className="flex h-64 items-center justify-center bg-slate-950 text-muted-foreground">
+              No banner available
+            </div>
+          )}
 
-            <div className="space-y-6">
-              <div className="rounded-3xl border border-border bg-background p-6 shadow-sm">
-                <div className="flex flex-wrap gap-2">
-                  {overview.map((item) => (
-                    <div
-                      key={item.label}
-                      className={cn(
-                        "rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-foreground",
-                        item.label === "Score" ? "bg-emerald-500/10 border-emerald-500/20" : ""
-                      )}
-                    >
-                      <span className="text-muted-foreground">{item.label}:</span>{" "}
-                      <span className="text-foreground">{item.value}</span>
+          <div className="px-6 py-8 lg:px-10">
+            <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+              <div className="space-y-6">
+                <div className="relative overflow-hidden rounded-3xl border border-border bg-muted aspect-[3/4]">
+                  {coverImage ? (
+                    <Image
+                      src={coverImage}
+                      alt={`${anime.title} cover`}
+                      fill
+                      className="object-cover"
+                      loading="lazy"
+                      sizes="(max-width: 768px) 100vw, 280px"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center p-8 text-center text-sm text-muted-foreground">
+                      No cover image available
                     </div>
-                  ))}
+                  )}
                 </div>
 
-                <div className="mt-6 space-y-4">
-                  <div className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-3 rounded-3xl border border-border bg-background p-5">
+                  <div className="space-y-1">
+                    <h1 className="text-3xl font-semibold tracking-tight">{anime.title}</h1>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      {anime.english_title || anime.japanese_title
+                        ? [anime.english_title, anime.japanese_title]
+                            .filter(Boolean)
+                            .join(" · ")
+                        : "No alternate titles available."}
+                    </p>
+                  </div>
+
+                  <div className="grid gap-2 text-sm text-muted-foreground">
+                    <p>
+                      <span className="font-medium text-foreground">Genres:</span>{" "}
+                      {formatArray(anime.genres)}
+                    </p>
+                    <p>
+                      <span className="font-medium text-foreground">Studios:</span>{" "}
+                      {formatArray(anime.studios)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="rounded-3xl border border-border bg-background p-6 shadow-sm">
+                  <div className="flex flex-wrap gap-2">
+                    {overview.map((item) => (
+                      <div
+                        key={item.label}
+                        className={cn(
+                          "rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-foreground",
+                          item.label === "Score" ? "bg-emerald-500/10 border-emerald-500/20" : ""
+                        )}
+                      >
+                        <span className="text-muted-foreground">{item.label}:</span>{" "}
+                        <span className="text-foreground">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 space-y-4">
+                    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h2 className="text-lg font-semibold">Diary</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Keep this anime in your private diary with your status, rating, and notes.
+                        </p>
+                      </div>
+                      <DiaryEntryDialog
+                        animeId={anime.id}
+                        animeTitle={anime.title}
+                        entry={diaryEntry}
+                        isLoggedIn={Boolean(user)}
+                      />
+                    </div>
+
                     <div>
-                      <h2 className="text-lg font-semibold">Diary</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Keep this anime in your private diary with your status, rating, and notes.
+                      <h2 className="text-xl font-semibold">Synopsis</h2>
+                      <p className="mt-3 leading-7 text-muted-foreground">
+                        {anime.synopsis?.trim() || "No synopsis available."}
                       </p>
                     </div>
-                    <DiaryEntryDialog
-                      animeId={anime.id}
-                      animeTitle={anime.title}
-                      entry={diaryEntry}
-                      isLoggedIn={Boolean(user)}
-                    />
-                  </div>
-
-                  <div>
-                    <h2 className="text-xl font-semibold">Synopsis</h2>
-                    <p className="mt-3 leading-7 text-muted-foreground">
-                      {anime.synopsis?.trim() || "No synopsis available."}
-                    </p>
                   </div>
                 </div>
+
+                <section className="rounded-3xl border border-border bg-card p-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-xl font-semibold">Related anime</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Recommendations are not available yet. Check back soon.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-muted px-3 py-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                      Coming soon
+                    </span>
+                  </div>
+                </section>
               </div>
-
-              <section className="rounded-3xl border border-border bg-card p-6">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-semibold">Related anime</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Recommendations are not available yet. Check back soon.
-                    </p>
-                  </div>
-                  <span className="rounded-full border border-muted px-3 py-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                    Coming soon
-                  </span>
-                </div>
-              </section>
             </div>
           </div>
         </div>
-      </div>
-    </Container>
+      </Container>
+    </>
   )
 }
