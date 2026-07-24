@@ -242,6 +242,7 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
               name="username"
               defaultValue={formData.username || ""}
               placeholder="Enter username"
+              suppressHydrationWarning
             />
             <p className="text-xs text-muted-foreground">
               Only letters, numbers, and underscores allowed.
@@ -256,6 +257,7 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
               name="displayName"
               defaultValue={formData.displayName || ""}
               placeholder="Enter display name"
+              suppressHydrationWarning
             />
           </div>
         </div>
@@ -270,6 +272,7 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
             defaultValue={formData.bio || ""}
             placeholder="Tell us about yourself..."
             rows={3}
+            suppressHydrationWarning
           />
         </div>
 
@@ -282,6 +285,7 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
             name="website"
             defaultValue={formData.website || ""}
             placeholder="https://example.com"
+            suppressHydrationWarning
           />
         </div>
 
