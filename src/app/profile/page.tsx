@@ -75,6 +75,14 @@ export default async function ProfilePage() {
     .join("")
     .slice(0, 2)
     .toUpperCase()
+  const profileFormKey = [
+    profile.id,
+    profile.username ?? "",
+    profile.display_name ?? "",
+    profile.bio ?? "",
+    profile.website ?? "",
+    profile.avatar_url ?? "",
+  ].join("|")
 
   return (
     <Container className="space-y-8 py-8">
@@ -128,7 +136,11 @@ export default async function ProfilePage() {
         </section>
 
         <div className="space-y-6">
-          <ProfileEditForm profile={profile} initials={initials} />
+          <ProfileEditForm
+            key={profileFormKey}
+            profile={profile}
+            initials={initials}
+          />
           <section className="grid gap-4 md:grid-cols-3">
             <StatCard
               label="Anime watched"

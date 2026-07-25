@@ -73,6 +73,15 @@ function compressImage(file: File): Promise<File> {
   })
 }
 
+function getInitialFormData(profile: ProfileRow) {
+  return {
+    username: profile?.username || "",
+    displayName: profile?.display_name || "",
+    bio: profile?.bio || "",
+    website: profile?.website || "",
+  }
+}
+
 export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
   const router = useRouter()
   const [state, formAction, isPending] = React.useActionState(
@@ -89,22 +98,7 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
   )
   const [compressedFile, setCompressedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [formData, setFormData] = useState({
-    username: profile?.username || "",
-    displayName: profile?.display_name || "",
-    bio: profile?.bio || "",
-    website: profile?.website || "",
-  })
-
-  useEffect(() => {
-    setFormData({
-      username: profile?.username || "",
-      displayName: profile?.display_name || "",
-      bio: profile?.bio || "",
-      website: profile?.website || "",
-    })
-    setAvatarPreview(profile.avatar_url)
-  }, [profile])
+  const [formData, setFormData] = useState(() => getInitialFormData(profile))
 
   useEffect(() => {
     if (state?.message) {
