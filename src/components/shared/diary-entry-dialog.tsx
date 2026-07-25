@@ -90,6 +90,13 @@ export function DiaryEntryDialog({ animeId, animeTitle, entry, isLoggedIn }: Dia
     }
   }, [deleteState.message, favoriteState.message, router])
 
+  const handleFavoriteToggle = () => {
+    setFormState((current) => ({
+      ...current,
+      favorite: !current.favorite,
+    }))
+  }
+
   if (!isLoggedIn) {
     return (
       <Button type="button" onClick={() => router.push("/login")}>
@@ -246,7 +253,13 @@ export function DiaryEntryDialog({ animeId, animeTitle, entry, isLoggedIn }: Dia
               </DialogContent>
             </Dialog>
 
-            <form action={favoriteAction} className="inline-flex">
+            <form
+              action={(formData) => {
+                handleFavoriteToggle()
+                favoriteAction(formData)
+              }}
+              className="inline-flex"
+            >
               <input type="hidden" name="entryId" value={entry.id} />
               <Button type="submit" variant="outline" disabled={favoritePending}>
                 {favoritePending ? <Loader2 className="h-4 w-4 animate-spin" /> : formState.favorite ? "★ Favorite" : "☆ Favorite"}

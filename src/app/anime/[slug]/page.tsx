@@ -236,7 +236,11 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
                         </p>
                       </div>
                       <DiaryEntryDialog
-                        key={diaryEntry?.id ?? "new"}
+                        key={
+                          diaryEntry
+                            ? `${diaryEntry.id}-${diaryEntry.favorite ? "favorite" : "not-favorite"}`
+                            : "new"
+                        }
                         animeId={anime.id}
                         animeTitle={anime.title}
                         entry={diaryEntry}
