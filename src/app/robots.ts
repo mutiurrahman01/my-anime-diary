@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: ['/', '/search', '/anime', '/login', '/signup'],
       disallow: ['/dashboard', '/profile', '/settings', '/diary', '/favorites'],
     },
-    sitemap: 'https://myanimediary.com/sitemap.xml',
+    sitemap: 'https://myanimediary.vercel.app/sitemap.xml',
   }
 }

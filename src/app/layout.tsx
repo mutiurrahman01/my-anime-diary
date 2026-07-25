@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://myanimediary.com"),
+  metadataBase: new URL("https://myanimediary.vercel.app"),
   title: {
     default: "Anime Diary",
     template: "%s | Anime Diary",
