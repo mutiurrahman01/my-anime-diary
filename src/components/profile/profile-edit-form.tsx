@@ -89,12 +89,22 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
   )
   const [compressedFile, setCompressedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [formData] = useState({
+  const [formData, setFormData] = useState({
     username: profile?.username || "",
     displayName: profile?.display_name || "",
     bio: profile?.bio || "",
     website: profile?.website || "",
   })
+
+  useEffect(() => {
+    setFormData({
+      username: profile?.username || "",
+      displayName: profile?.display_name || "",
+      bio: profile?.bio || "",
+      website: profile?.website || "",
+    })
+    setAvatarPreview(profile.avatar_url)
+  }, [profile])
 
   useEffect(() => {
     if (state?.message) {
@@ -225,9 +235,14 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
             <Input
               id="username"
               name="username"
-              defaultValue={formData.username || ""}
+              value={formData.username}
+              onChange={(event) =>
+                setFormData((current) => ({
+                  ...current,
+                  username: event.target.value,
+                }))
+              }
               placeholder="Enter username"
-              suppressHydrationWarning
             />
             <p className="text-xs text-muted-foreground">
               Only letters, numbers, and underscores allowed.
@@ -240,9 +255,14 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
             <Input
               id="displayName"
               name="displayName"
-              defaultValue={formData.displayName || ""}
+              value={formData.displayName}
+              onChange={(event) =>
+                setFormData((current) => ({
+                  ...current,
+                  displayName: event.target.value,
+                }))
+              }
               placeholder="Enter display name"
-              suppressHydrationWarning
             />
           </div>
         </div>
@@ -254,10 +274,15 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
           <Textarea
             id="bio"
             name="bio"
-            defaultValue={formData.bio || ""}
+            value={formData.bio}
+            onChange={(event) =>
+              setFormData((current) => ({
+                ...current,
+                bio: event.target.value,
+              }))
+            }
             placeholder="Tell us about yourself..."
             rows={3}
-            suppressHydrationWarning
           />
         </div>
 
@@ -268,9 +293,14 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
           <Input
             id="website"
             name="website"
-            defaultValue={formData.website || ""}
+            value={formData.website}
+            onChange={(event) =>
+              setFormData((current) => ({
+                ...current,
+                website: event.target.value,
+              }))
+            }
             placeholder="https://example.com"
-            suppressHydrationWarning
           />
         </div>
 
