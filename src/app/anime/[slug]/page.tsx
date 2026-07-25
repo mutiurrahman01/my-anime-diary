@@ -1,21 +1,12 @@
-import type { Metadata } from "next"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 
 import { Container } from "@/components/layout/container"
 import { DiaryEntryDialog } from "@/components/shared/diary-entry-dialog"
-import { RatingStars } from "@/components/shared/rating-stars"
 import { createClient } from "@/lib/supabase/server"
 import { getAnimeByMalId, getAnimeBySlug } from "@/services/anime.service"
 import { getDiaryEntry } from "@/services/user-anime.service"
-import type { AnimeRow } from "@/types/database"
 import { cn } from "@/lib/utils"
-
-type AnimeDetailsPageProps = {
-  params: {
-    slug: string
-  }
-}
 
 async function fetchAnime(param: string) {
   if (process.env.NODE_ENV === "development") {
@@ -52,24 +43,18 @@ function formatArray(value: string[] | null) {
   return value?.length ? value.join(", ") : "Unknown"
 }
 
-function formatDescription(synopsis: string | null) {
-  const text = synopsis?.trim() || "No synopsis available."
-  return text.length > 150 ? `${text.slice(0, 147)}...` : text
-}
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const supabase = await createClient()
-  const { data: anime, error } = await getAnimeBySlug(supabase, slug)
+  const anime = await fetchAnime(slug)
 
-  if (error || !anime) {
+  if (!anime) {
     return {
       title: "Anime Not Found",
-      description: "The requested anime was not found.",
+      description: "The requested anime was not be found.",
     }
   }
 
@@ -251,6 +236,7 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
                         </p>
                       </div>
                       <DiaryEntryDialog
+                        key={diaryEntry?.id ?? "new"}
                         animeId={anime.id}
                         animeTitle={anime.title}
                         entry={diaryEntry}

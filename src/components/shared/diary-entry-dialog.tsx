@@ -73,16 +73,6 @@ export function DiaryEntryDialog({ animeId, animeTitle, entry, isLoggedIn }: Dia
     notes: entry?.notes ?? "",
   })
 
-  useEffect(() => {
-    setFormState({
-      watchStatus: (entry?.watch_status ?? "PLAN_TO_WATCH") as WatchStatus,
-      episodesWatched: entry?.episodes_watched ?? 0,
-      rating: entry?.rating ?? 0,
-      favorite: entry?.favorite ?? false,
-      notes: entry?.notes ?? "",
-    })
-  }, [entry])
-
   const action = entry ? updateDiaryAction : addToDiaryAction
   const [submitState, submitAction, submitPending] = useActionState(action, initialState)
   const [favoriteState, favoriteAction, favoritePending] = useActionState(toggleFavoriteAction, initialState)
@@ -90,7 +80,6 @@ export function DiaryEntryDialog({ animeId, animeTitle, entry, isLoggedIn }: Dia
 
   useEffect(() => {
     if (submitState.message) {
-      setOpen(false)
       router.refresh()
     }
   }, [router, submitState.message])
@@ -109,12 +98,14 @@ export function DiaryEntryDialog({ animeId, animeTitle, entry, isLoggedIn }: Dia
     )
   }
 
+  const dialogOpen = open && !submitState.message
+
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-3">
         {entry ? (
           <>
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog open={dialogOpen} onOpenChange={setOpen}>
               <DialogTrigger render={<Button type="button" variant="default" />}>
                 Edit Entry
               </DialogTrigger>
@@ -263,7 +254,7 @@ export function DiaryEntryDialog({ animeId, animeTitle, entry, isLoggedIn }: Dia
             </form>
           </>
         ) : (
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={dialogOpen} onOpenChange={setOpen}>
             <DialogTrigger render={<Button type="button" />}>
               Add to Diary
             </DialogTrigger>

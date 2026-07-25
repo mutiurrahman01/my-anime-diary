@@ -81,6 +81,7 @@ export async function getAnimeByMalId(
     .from("anime")
     .select("*")
     .eq("mal_id", malId)
+    .is("deleted_at", null)
     .single()
 
   return {

@@ -7,6 +7,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: anime } = await supabase
     .from('anime')
     .select('slug, updated_at')
+    .is('deleted_at', null)
 
   const staticPages = [
     { url: 'https://myanimediary.com', lastModified: new Date() },

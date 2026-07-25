@@ -1,7 +1,34 @@
-import type { SupabaseClient } from "@supabase/supabase-js"
-
 import { createClient } from "@/lib/supabase/server"
-import type { Database, UserAnimeInsert, UserAnimeRow, UserAnimeUpdate, WatchStatus } from "@/types/database"
+import type { UserAnimeInsert, UserAnimeRow, UserAnimeUpdate, WatchStatus } from "@/types/database"
+
+type SupabaseError = {
+  code?: string
+  message?: string
+  details?: string
+  hint?: string
+}
+
+function getSupabaseError(error: unknown): SupabaseError {
+  if (error && typeof error === "object") {
+    return error as SupabaseError
+  }
+
+  return {}
+}
+
+function logSupabaseError(context: string, error: unknown) {
+  if (process.env.NODE_ENV !== "development") {
+    return
+  }
+
+  const supabaseError = getSupabaseError(error)
+
+  console.error(`🔴 ${context} Supabase error:`, JSON.stringify(error, null, 2))
+  console.error(`🔴 Error code:`, supabaseError.code)
+  console.error(`🔴 Error message:`, supabaseError.message)
+  console.error(`🔴 Error details:`, supabaseError.details)
+  console.error(`🔴 Error hint:`, supabaseError.hint)
+}
 
 export type DiaryEntryInput = {
   userId: string
@@ -34,15 +61,16 @@ export type DiarySortBy =
   | "episodes_watched"
   | "title"
 
-function normalizeAnimeRelation(entry: any): DiaryEntryWithAnime {
+function normalizeAnimeRelation(entry: unknown): DiaryEntryWithAnime {
+  const safeEntry = (entry ?? {}) as Partial<UserAnimeRow> & { anime?: unknown }
   let anime = null
 
-  if (entry?.anime) {
-    anime = Array.isArray(entry.anime) ? entry.anime[0] ?? null : entry.anime
+  if (safeEntry.anime) {
+    anime = Array.isArray(safeEntry.anime) ? safeEntry.anime[0] ?? null : safeEntry.anime
   }
 
   return {
-    ...entry,
+    ...(safeEntry as UserAnimeRow),
     anime,
   }
 }
@@ -83,11 +111,7 @@ export async function getUserAnime(userId: string): Promise<{ data: UserAnimeRow
       .order("updated_at", { ascending: false })
 
     if (error && process.env.NODE_ENV === "development") {
-      console.error("🔴 getUserAnime Supabase error:", JSON.stringify(error, null, 2))
-      console.error("🔴 Error code:", (error as any)?.code)
-      console.error("🔴 Error message:", error.message)
-      console.error("🔴 Error details:", (error as any)?.details)
-      console.error("🔴 Error hint:", (error as any)?.hint)
+      logSupabaseError("getUserAnime", error)
     }
 
     return {
@@ -114,11 +138,7 @@ export async function getDiaryEntry(userId: string, animeId: string): Promise<Di
       .maybeSingle()
 
     if (error && process.env.NODE_ENV === "development") {
-      console.error("🔴 getDiaryEntry Supabase error:", JSON.stringify(error, null, 2))
-      console.error("🔴 Error code:", (error as any)?.code)
-      console.error("🔴 Error message:", error.message)
-      console.error("🔴 Error details:", (error as any)?.details)
-      console.error("🔴 Error hint:", (error as any)?.hint)
+      logSupabaseError("getDiaryEntry", error)
     }
 
     return {
@@ -160,11 +180,7 @@ export async function getUserDiaryEntries(
     const { data, error } = await orderedRequest
 
     if (error && process.env.NODE_ENV === "development") {
-      console.error("🔴 getUserDiaryEntries Supabase error:", JSON.stringify(error, null, 2))
-      console.error("🔴 Error code:", (error as any)?.code)
-      console.error("🔴 Error message:", error.message)
-      console.error("🔴 Error details:", (error as any)?.details)
-      console.error("🔴 Error hint:", (error as any)?.hint)
+      logSupabaseError("getUserDiaryEntries", error)
     }
 
     const entries = (data ?? []).map(normalizeAnimeRelation) as DiaryEntryWithAnime[]
@@ -206,11 +222,7 @@ export async function getUserFavorites(
       .order("updated_at", { ascending: false })
 
     if (error && process.env.NODE_ENV === "development") {
-      console.error("🔴 getUserFavorites Supabase error:", JSON.stringify(error, null, 2))
-      console.error("🔴 Error code:", (error as any)?.code)
-      console.error("🔴 Error message:", error.message)
-      console.error("🔴 Error details:", (error as any)?.details)
-      console.error("🔴 Error hint:", (error as any)?.hint)
+      logSupabaseError("getUserFavorites", error)
     }
 
     const entries = (data ?? []).map(normalizeAnimeRelation) as DiaryEntryWithAnime[]
@@ -256,11 +268,7 @@ export async function addToDiary(data: DiaryEntryInput): Promise<DiaryEntryResul
     }
 
     if (error && process.env.NODE_ENV === "development") {
-      console.error("🔴 Full Supabase error:", JSON.stringify(error, null, 2))
-      console.error("🔴 Error code:", (error as any)?.code)
-      console.error("🔴 Error message:", error.message)
-      console.error("🔴 Error details:", (error as any)?.details)
-      console.error("🔴 Error hint:", (error as any)?.hint)
+      logSupabaseError("addToDiary", error)
       console.error("🔴 addToDiary failed query: insert into user_anime", payload)
     }
 
@@ -296,11 +304,7 @@ export async function updateDiary(id: string, data: Partial<DiaryEntryInput>): P
       .single()
 
     if (error && process.env.NODE_ENV === "development") {
-      console.error("🔴 updateDiary Supabase error:", JSON.stringify(error, null, 2))
-      console.error("🔴 Error code:", (error as any)?.code)
-      console.error("🔴 Error message:", error.message)
-      console.error("🔴 Error details:", (error as any)?.details)
-      console.error("🔴 Error hint:", (error as any)?.hint)
+      logSupabaseError("updateDiary", error)
     }
 
     return {
@@ -327,11 +331,7 @@ export async function toggleFavorite(id: string): Promise<DiaryEntryResult> {
 
     if (fetchError) {
       if (process.env.NODE_ENV === "development") {
-        console.error("🔴 toggleFavorite fetch error:", JSON.stringify(fetchError, null, 2))
-        console.error("🔴 Error code:", (fetchError as any)?.code)
-        console.error("🔴 Error message:", fetchError.message)
-        console.error("🔴 Error details:", (fetchError as any)?.details)
-        console.error("🔴 Error hint:", (fetchError as any)?.hint)
+        logSupabaseError("toggleFavorite fetch", fetchError)
       }
       return {
         data: null,
@@ -348,11 +348,7 @@ export async function toggleFavorite(id: string): Promise<DiaryEntryResult> {
       .single()
 
     if (error && process.env.NODE_ENV === "development") {
-      console.error("🔴 toggleFavorite update error:", JSON.stringify(error, null, 2))
-      console.error("🔴 Error code:", (error as any)?.code)
-      console.error("🔴 Error message:", error.message)
-      console.error("🔴 Error details:", (error as any)?.details)
-      console.error("🔴 Error hint:", (error as any)?.hint)
+      logSupabaseError("toggleFavorite update", error)
     }
 
     return {
@@ -374,11 +370,7 @@ export async function deleteDiaryEntry(id: string): Promise<{ error: string | nu
     const { error } = await supabase.from("user_anime").delete().eq("id", id)
 
     if (error && process.env.NODE_ENV === "development") {
-      console.error("🔴 deleteDiaryEntry Supabase error:", JSON.stringify(error, null, 2))
-      console.error("🔴 Error code:", (error as any)?.code)
-      console.error("🔴 Error message:", error.message)
-      console.error("🔴 Error details:", (error as any)?.details)
-      console.error("🔴 Error hint:", (error as any)?.hint)
+      logSupabaseError("deleteDiaryEntry", error)
     }
 
     return {

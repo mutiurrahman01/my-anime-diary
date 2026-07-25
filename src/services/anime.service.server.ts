@@ -25,7 +25,7 @@ export async function getRecentAnime(
       data: (data ?? []) as AnimeListItem[],
       error: mapSearchError(error),
     }
-  } catch (error) {
+  } catch {
     return {
       data: [],
       error: "Unable to fetch recent anime right now. Please try again later.",
@@ -50,7 +50,7 @@ export async function getHighestRatedAnime(
       data: (data ?? []) as AnimeListItem[],
       error: mapSearchError(error),
     }
-  } catch (error) {
+  } catch {
     return {
       data: [],
       error: "Unable to fetch highest rated anime right now. Please try again later.",

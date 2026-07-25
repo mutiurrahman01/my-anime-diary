@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react"
 import NextImage from "next/image"
+import { useRouter } from "next/navigation"
 import { ImagePlus, Loader2, User } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -73,6 +74,7 @@ function compressImage(file: File): Promise<File> {
 }
 
 export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
+  const router = useRouter()
   const [state, formAction, isPending] = React.useActionState(
     updateProfileAction,
     { error: null, message: null }
@@ -87,7 +89,7 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
   )
   const [compressedFile, setCompressedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [formData, setFormData] = useState({
+  const [formData] = useState({
     username: profile?.username || "",
     displayName: profile?.display_name || "",
     bio: profile?.bio || "",
@@ -96,10 +98,9 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
 
   useEffect(() => {
     if (state?.message) {
-      console.log("🔄 Reloading page...")
-      window.location.reload()
+      router.refresh()
     }
-  }, [state])
+  }, [state, router])
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -116,22 +117,6 @@ export function ProfileEditForm({ profile, initials }: ProfileEditFormProps) {
         setAvatarPreview(previewUrl)
       }
     }
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
   }
 
   return (

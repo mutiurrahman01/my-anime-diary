@@ -7,8 +7,6 @@ const protectedPaths = [
   '/favorites',
   '/profile',
   '/settings',
-  '/search',
-  '/anime',
 ]
 
 function getSupabaseConfig() {
@@ -44,7 +42,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
 
@@ -83,5 +81,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/diary/:path*', '/favorites/:path*', '/profile/:path*', '/settings/:path*', '/search/:path*', '/anime/:path*'],
+  matcher: ['/dashboard/:path*', '/diary/:path*', '/favorites/:path*', '/profile/:path*', '/settings/:path*'],
 }

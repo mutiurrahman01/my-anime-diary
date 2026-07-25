@@ -17,7 +17,7 @@ export function ToggleFavoriteButton({ entryId, isFavorite }: ToggleFavoriteButt
     error: null,
     message: null,
   }
-  const [state, formAction] = useActionState(toggleFavoriteAction, initialState)
+  const [, formAction] = useActionState(toggleFavoriteAction, initialState)
 
   return (
     <form
