@@ -46,9 +46,20 @@ export function AuthForm({ mode, redirectTo }: AuthFormProps) {
         return
       }
 
+      const siteUrl =
+        process.env.NODE_ENV === "production"
+          ? process.env.NEXT_PUBLIC_SITE_URL ||
+            (typeof window !== "undefined"
+              ? window.location.origin
+              : "http://localhost:3000")
+          : "http://localhost:3000"
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${siteUrl}/auth/confirm`,
+        },
       })
 
       if (signUpError) {
