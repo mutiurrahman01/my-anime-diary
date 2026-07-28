@@ -106,6 +106,7 @@ const jsonLd = {
       description: SITE_DESCRIPTION,
     },
     {
+
       "@type": "Organization",
       name: SITE_NAME,
       url: SITE_URL,
