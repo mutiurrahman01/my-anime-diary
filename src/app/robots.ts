@@ -1,12 +1,19 @@
 import type { MetadataRoute } from 'next'
+import { SITE_URL } from '@/lib/site'
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: ['/', '/search', '/anime', '/login', '/signup'],
-      disallow: ['/dashboard', '/profile', '/settings', '/diary', '/favorites'],
+      allow: '/',
+      disallow: [
+        '/dashboard',
+        '/profile',
+        '/settings',
+        '/favorites',
+        '/diary',
+      ],
     },
-    sitemap: 'https://myanimediary.vercel.app/sitemap.xml',
+    sitemap: `${SITE_URL}/sitemap.xml`,
   }
 }

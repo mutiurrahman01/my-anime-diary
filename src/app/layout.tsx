@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_LOGO, OG_IMAGE, TWITTER_IMAGE } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,21 +20,35 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://myanimediary.vercel.app"),
+  metadataBase: new URL(SITE_URL),
+
+  applicationName: SITE_NAME,
   title: {
-    default: "Anime Diary",
-    template: "%s | Anime Diary",
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
   },
-  description:
-    "Track your anime watchlist, diary entries, and favorites in one place.",
+  description: SITE_DESCRIPTION,
+
   keywords: [
-    "anime diary",
     "anime tracker",
+    "anime diary",
     "anime watchlist",
-    "anime reviews",
-    "anime favorites",
+    "anime ratings",
+    "anime database",
+    "favorite anime",
+    "anime journal",
+    "track anime",
+    "my anime list",
+    "anime collection",
   ],
-  authors: [{ name: "Anime Diary" }],
+
+  authors: [{ name: "Muti Ur Rahman" }],
+  creator: "Muti Ur Rahman",
+  publisher: SITE_NAME,
+  category: "Entertainment",
+
+  referrer: "origin-when-cross-origin",
+
   robots: {
     index: true,
     follow: true,
@@ -45,24 +60,59 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+
   openGraph: {
-    title: "Anime Diary",
-    description:
-      "Track your anime watchlist, diary entries, and favorites in one place.",
-    url: "https://myanimediary.com",
-    siteName: "Anime Diary",
-    locale: "en_US",
     type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} – Track Anime, Rate Shows & Build Your Personal Anime Diary`,
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: SITE_NAME,
+      },
+    ],
   },
+
   twitter: {
     card: "summary_large_image",
-    title: "Anime Diary",
-    description:
-      "Track your anime watchlist, diary entries, and favorites in one place.",
+    title: `${SITE_NAME} – Track Anime & Build Your Personal Anime Diary`,
+    description: SITE_DESCRIPTION,
+    images: [TWITTER_IMAGE],
   },
+
   icons: {
     icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
+
+  verification: {
+    google: "GFxFgg0j3TQoIMdNa-aE8SCgVNy-fTiQvHF5GeSWu9c",
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: SITE_NAME, 
+      url: SITE_URL,
+      description: SITE_DESCRIPTION,
+    },
+    {
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: SITE_LOGO,
+      sameAs: [], // Add real social links if available
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -70,23 +120,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        name: "My Anime Diary",
-        url: "https://myanimediary.com",
-      },
-      {
-        "@type": "Organization",
-        name: "My Anime Diary",
-        url: "https://myanimediary.com",
-        sameAs: ["https://twitter.com/myanimediary"],
-      },
-    ],
-  };
-
   return (
     <html
       lang="en"
@@ -107,9 +140,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Header />
-          <main className="flex-1">
-            {children}
-          </main>
+          <main className="flex-1">{children}</main>
           <Footer />
         </ThemeProvider>
         <Analytics />

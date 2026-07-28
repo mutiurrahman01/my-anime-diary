@@ -1,92 +1,123 @@
-import Image from "next/image"
-import { notFound } from "next/navigation"
+import Image from "next/image";
+import { notFound } from "next/navigation";
 
-import { Container } from "@/components/layout/container"
-import { DiaryEntryDialog } from "@/components/shared/diary-entry-dialog"
-import { createClient } from "@/lib/supabase/server"
-import { getAnimeByMalId, getAnimeBySlug } from "@/services/anime.service"
-import { getDiaryEntry } from "@/services/user-anime.service"
-import { cn } from "@/lib/utils"
+import { Container } from "@/components/layout/container";
+import { DiaryEntryDialog } from "@/components/shared/diary-entry-dialog";
+import { createClient } from "@/lib/supabase/server";
+import { getAnimeByMalId, getAnimeBySlug } from "@/services/anime.service";
+import { getDiaryEntry } from "@/services/user-anime.service";
+import { cn } from "@/lib/utils";
+import { SITE_URL, OG_IMAGE, TWITTER_IMAGE } from "@/lib/site";
 
+// ---------- Helper Functions ----------
 async function fetchAnime(param: string) {
   if (process.env.NODE_ENV === "development") {
-    console.log("📄 Page slug param:", param)
+    console.log("📄 Page slug param:", param);
   }
-  const malId = Number(param)
+  const malId = Number(param);
 
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
 
     if (!Number.isInteger(malId) || malId <= 0) {
-      const { data, error } = await getAnimeBySlug(supabase, param)
-
-      if (error) {
-        throw new Error(error)
-      }
-
-      return data
+      const { data, error } = await getAnimeBySlug(supabase, param);
+      if (error) throw new Error(error);
+      return data;
     }
 
-    const { data, error } = await getAnimeByMalId(supabase, malId)
-
-    if (error) {
-      throw new Error(error)
-    }
-
-    return data
+    const { data, error } = await getAnimeByMalId(supabase, malId);
+    if (error) throw new Error(error);
+    return data;
   } catch {
-    return null
+    return null;
   }
 }
 
 function formatArray(value: string[] | null) {
-  return value?.length ? value.join(", ") : "Unknown"
+  return value?.length ? value.join(", ") : "Unknown";
 }
 
+function getMediaType(anime: any): string {
+  if (anime.type === "TV") return "TV Series";
+  if (anime.type === "Movie") return "Movie";
+  if (anime.type === "OVA") return "OVA";
+  if (anime.type === "ONA") return "ONA";
+  if (anime.type === "Special") return "Special";
+  return "Anime";
+}
+
+function generateMetaTitle(anime: any): string {
+  const mediaType = getMediaType(anime);
+  return `${anime.title} (${mediaType}) – Watchlist, Rating & Diary | AnimeDiary`;
+}
+
+function generateMetaDescription(anime: any): string {
+  const synopsis = anime.synopsis?.trim() || "";
+  const base = synopsis.length > 0
+    ? synopsis.slice(0, 155)
+    : `Read ${anime.title} details, synopsis, genres, episodes, studios and keep it in your AnimeDiary watchlist.`;
+  return base.length > 0 ? base : `Track ${anime.title} in your AnimeDiary – rate, review, and organize your anime watchlist.`;
+}
+
+// ---------- Metadata ----------
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params
-  const anime = await fetchAnime(slug)
+  const { slug } = await params;
+  const anime = await fetchAnime(slug);
 
   if (!anime) {
     return {
-      title: "Anime Not Found",
-      description: "The requested anime was not be found.",
-    }
+      title: "Anime Not Found | AnimeDiary",
+      description: "The requested anime could not be found.",
+    };
   }
 
-  const description = anime.synopsis?.slice(0, 150) || "Anime details page"
+  const title = generateMetaTitle(anime);
+  const description = generateMetaDescription(anime);
+  const imageUrl = anime.cover_image || OG_IMAGE;
 
   return {
-    title: anime.title,
+    title,
     description,
     openGraph: {
-      title: anime.title,
+      title,
       description,
-      images: anime.cover_image ? [anime.cover_image] : [],
-      url: `https://myanimediary.com/anime/${slug}`,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: anime.title,
+        },
+      ],
+      url: `${SITE_URL}/anime/${slug}`,
     },
     twitter: {
       card: "summary_large_image",
-      title: anime.title,
+      title,
       description,
-      images: anime.cover_image ? [anime.cover_image] : [],
+      images: [imageUrl],
     },
     alternates: {
-      canonical: `https://myanimediary.com/anime/${slug}`,
+      canonical: `${SITE_URL}/anime/${slug}`,
     },
-  }
+  };
 }
 
-export default async function AnimeDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const anime = await fetchAnime(slug)
+// ---------- Page Component ----------
+export default async function AnimeDetailsPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const anime = await fetchAnime(slug);
 
   if (!anime) {
-    notFound()
+    notFound();
   }
 
   const overview = [
@@ -98,38 +129,44 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
     { label: "Popularity", value: anime.popularity ?? "N/A" },
     { label: "Episodes", value: anime.episodes ?? "N/A" },
     { label: "MAL ID", value: anime.mal_id ?? "N/A" },
-  ]
+  ];
 
-  const bannerImage = anime.banner_image ?? anime.cover_image
-  const coverImage = anime.cover_image ?? anime.banner_image
-  let user = null
-  let diaryEntry = null
+  const bannerImage = anime.banner_image ?? anime.cover_image;
+  const coverImage = anime.cover_image ?? anime.banner_image;
+
+  let user = null;
+  let diaryEntry = null;
 
   try {
-    const supabase = await createClient()
-    const {
-      data: { user: authenticatedUser },
-    } = await supabase.auth.getUser()
-    user = authenticatedUser
+    const supabase = await createClient();
+    const { data: { user: authenticatedUser } } = await supabase.auth.getUser();
+    user = authenticatedUser;
 
     if (user) {
-      const entryResult = await getDiaryEntry(user.id, anime.id)
-      diaryEntry = entryResult.error ? null : entryResult.data
+      const entryResult = await getDiaryEntry(user.id, anime.id);
+      diaryEntry = entryResult.error ? null : entryResult.data;
     }
   } catch {
-    user = null
-    diaryEntry = null
+    user = null;
+    diaryEntry = null;
   }
 
+  // ---------- JSON-LD (Structured Data) ----------
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "TVSeries",
     name: anime.title,
-    description: anime.synopsis,
-    image: anime.cover_image,
-    numberOfEpisodes: anime.episodes,
-    genre: anime.genres,
-    datePublished: anime.release_year,
+    alternateName: anime.english_title || anime.japanese_title || undefined,
+    description: anime.synopsis?.trim() || undefined,
+    image: anime.cover_image || undefined,
+    url: `${SITE_URL}/anime/${slug}`,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/anime/${slug}`,
+    },
+    numberOfEpisodes: anime.episodes ?? undefined,
+    genre: anime.genres?.join(", ") || undefined,
+    datePublished: anime.release_year ? `${anime.release_year}-01-01` : undefined,
     aggregateRating: anime.score
       ? {
           "@type": "AggregateRating",
@@ -137,16 +174,49 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
           bestRating: 10,
         }
       : undefined,
-  }
+  };
 
+  // ---------- Breadcrumb Schema ----------
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: SITE_URL,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Anime",
+        item: `${SITE_URL}/search`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: anime.title,
+        item: `${SITE_URL}/anime/${slug}`,
+      },
+    ],
+  };
+
+  // ---------- Render ----------
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
+
       <Container className="space-y-8 py-8">
         <div className="overflow-hidden rounded-3xl border border-border bg-card">
+          {/* Banner */}
           {bannerImage ? (
             <div className="relative h-64 w-full overflow-hidden bg-slate-950">
               <Image
@@ -167,6 +237,7 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
 
           <div className="px-6 py-8 lg:px-10">
             <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+              {/* Cover Image */}
               <div className="space-y-6">
                 <div className="relative overflow-hidden rounded-3xl border border-border bg-muted aspect-[3/4]">
                   {coverImage ? (
@@ -185,6 +256,7 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
                   )}
                 </div>
 
+                {/* Title & Alt Titles */}
                 <div className="space-y-3 rounded-3xl border border-border bg-background p-5">
                   <div className="space-y-1">
                     <h1 className="text-3xl font-semibold tracking-tight">{anime.title}</h1>
@@ -210,7 +282,9 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
                 </div>
               </div>
 
+              {/* Main Content */}
               <div className="space-y-6">
+                {/* Overview Tags */}
                 <div className="rounded-3xl border border-border bg-background p-6 shadow-sm">
                   <div className="flex flex-wrap gap-2">
                     {overview.map((item) => (
@@ -227,6 +301,7 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
                     ))}
                   </div>
 
+                  {/* Diary Section */}
                   <div className="mt-6 space-y-4">
                     <div className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
@@ -248,6 +323,7 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
                       />
                     </div>
 
+                    {/* Synopsis */}
                     <div>
                       <h2 className="text-xl font-semibold">Synopsis</h2>
                       <p className="mt-3 leading-7 text-muted-foreground">
@@ -257,6 +333,7 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
                   </div>
                 </div>
 
+                {/* Related Anime */}
                 <section className="rounded-3xl border border-border bg-card p-6">
                   <div className="flex items-center justify-between gap-4">
                     <div>
@@ -276,5 +353,5 @@ export default async function AnimeDetailsPage({ params }: { params: Promise<{ s
         </div>
       </Container>
     </>
-  )
+  );
 }
